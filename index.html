@@ -338,23 +338,23 @@ async function loadSet(code, name, total) {
       const csets = (card.card_sets||[]).filter(s => s.set_code && s.set_code.toUpperCase().startsWith(code.toUpperCase()));
       if (csets.length) {
         csets.forEach(cs => {
-          const key = card.id;
+          const key = String(card.id);
           if (!cardMap.has(key)) {
             cardMap.set(key, {
               id: card.id, name: card.name,
               img: card.card_images?.[0]?.image_url_small || '',
               code: cs.set_code, rarity: cs.set_rarity || '',
-              key: card.id
+              key
             });
           }
         });
       } else {
-        const key = card.id;
+        const key = String(card.id);
         if (!cardMap.has(key)) {
           cardMap.set(key, {
             id: card.id, name: card.name,
             img: card.card_images?.[0]?.image_url_small || '',
-            code: '', rarity: '', key: card.id
+            code: '', rarity: '', key
           });
         }
       }
@@ -386,7 +386,7 @@ function renderGrid() {
   grid.innerHTML = list.map(c => {
     const rk  = rarityKey(c.rarity);
     const sel = selected.has(c.key);
-    const sk  = c.key.replace(/[^a-z0-9]/gi,'_');
+    const sk  = String(c.key).replace(/[^a-z0-9]/gi,'_');
     return `
       <div class="card-sel-item${sel?' selected':''}" id="csi-${sk}" onclick="toggleCard('${c.key}')">
         <div class="card-sel-img-box">
@@ -413,7 +413,7 @@ function toggleCard(key) {
   else                   selected.add(key);
   const c  = allCards.find(x => x.key === key);
   if (!c) return;
-  const sk = c.key.replace(/[^a-z0-9]/gi,'_');
+  const sk = String(c.key).replace(/[^a-z0-9]/gi,'_');
   const el = document.getElementById(`csi-${sk}`);
   if (el) el.classList.toggle('selected', selected.has(key));
   document.getElementById('sel-count').textContent =
@@ -462,7 +462,7 @@ function generatePrint() {
   area.innerHTML = Array.from({length: pages}, (_,pi) => {
     const slice = cards.slice(pi * perPage, (pi+1) * perPage);
     const cardsHtml = slice.map(c => {
-      const sk = c.key.replace(/[^a-z0-9]/gi,'_');
+      const sk = String(c.key).replace(/[^a-z0-9]/gi,'_');
       return `
         <div class="print-card">
           <div class="pc-img">

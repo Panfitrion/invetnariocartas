@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>YGO Vault — Inventario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:        #F7F6F3;
+  --surface:   #FFFFFF;
+  --border:    #E8E6E1;
+  --border2:   #D4D0C8;
+  --text:      #1C1917;
+  --muted:     #78716C;
+  --faint:     #A8A29E;
+  --gold:      #C9A84C;
+  --gold-light:#FDF6E3;
+  --gold-dark: #9A7B2E;
+  --green:     #2D6A4F;
+  --green-bg:  #EAF4EE;
+  --red:       #9B2335;
+  --blue:      #1D4ED8;
+  --sidebar-w: 220px;
+  --bar-h:     64px;
+  --header-h:  56px;
+  --radius:    12px;
+  --radius-sm: 8px;
+  --shadow:    0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+}
+
+/* FIX #12 — font-family debe estar en * o body, no en :root */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: 'DM Sans', system-ui, sans-serif; }
+html, body { height: 100%; background: var(--bg); color: var(--text); }
+button { cursor: pointer; }
+img    { display: block; }
+
+/* ── LAYOUT ── */
+#shell { display: flex; height: 100vh; overflow: hidden; }
+
+#sidebar {
+  width: var(--sidebar-w); background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
+}
+.sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+.logo-mark { font-size: 18px; font-weight: 600; color: var(--text); letter-spacing: -.3px; }
+.logo-sub  { font-size: 11px; color: var(--faint); font-weight: 400; letter-spacing: .5px; text-transform: uppercase; margin-top: 2px; }
+.sidebar-nav { padding: 12px 10px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+  border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; color: var(--muted);
+  border: none; background: none; width: 100%; text-align: left;
+  transition: background .12s, color .12s;
+}
+.nav-item:hover  { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--gold-light); color: var(--gold-dark); }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+.sidebar-footer { padding: 12px 10px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+.sidebar-action {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; color: var(--muted);
+  border: none; background: none; width: 100%; text-align: left; transition: background .12s;
+}
+.sidebar-action:hover { background: var(--bg); color: var(--text); }
+.sidebar-add {
+  display: flex; align-items: center; justify-content: center;
+  padding: 9px 12px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+  color: #fff; background: var(--gold); border: none; width: 100%; cursor: pointer;
+  transition: opacity .12s;
+}
+.sidebar-add:hover { opacity: .88; }
+
+#main { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; }
+
+/* Bottom bar */
+#bottom-bar {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0;
+  height: var(--bar-h); background: var(--surface); border-top: 1px solid var(--border);
+  z-index: 100; padding: 0 8px; align-items: center; justify-content: space-around;
+}
+.bar-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 16px; border-radius: var(--radius-sm); font-size: 10px; font-weight: 500;
+  color: var(--faint); border: none; background: none; transition: color .12s;
+}
+.bar-icon { font-size: 20px; }
+.bar-item.active { color: var(--gold-dark); }
+
+/* Mobile header */
+#mobile-header {
+  display: none; background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 16px; height: var(--header-h); align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 90;
+}
+.mobile-title   { font-size: 16px; font-weight: 600; }
+.mobile-actions { display: flex; gap: 8px; }
+
+/* ── BUTTONS ── */
+.btn { padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; border: none; transition: opacity .12s; white-space: nowrap; }
+.btn:active   { opacity: .75; }
+.btn-gold     { background: var(--gold); color: #fff; }
+.btn-outline  { background: var(--surface); color: var(--text); border: 1px solid var(--border2); }
+
+/* ── VIEWS ── */
+.view { display: none; flex-direction: column; flex: 1; min-height: 0; }
+.view.active { display: flex; }
+
+/* ── PAGE HEADER ── */
+.page-header { padding: 28px 28px 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.page-title  { font-size: 22px; font-weight: 600; letter-spacing: -.3px; }
+.page-sub    { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+/* ── DASHBOARD ── */
+.dash-scroll { flex: 1; overflow-y: auto; }
+.dash-content { padding: 20px 28px 40px; display: flex; flex-direction: column; gap: 24px; }
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow);
+}
+.sc-label { font-size: 11px; font-weight: 500; color: var(--faint); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; }
+.sc-value { font-size: 28px; font-weight: 600; letter-spacing: -.5px; color: var(--text); line-height: 1; }
+.sc-sub   { font-size: 12px; color: var(--muted); margin-top: 5px; }
+.accent-gold  { border-left: 3px solid var(--gold); }
+.accent-green { border-left: 3px solid var(--green); }
+.accent-blue  { border-left: 3px solid var(--blue); }
+.accent-red   { border-left: 3px solid var(--red); }
+.section-title { font-size: 12px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+.section-link  { font-size: 12px; color: var(--gold-dark); text-transform: none; letter-spacing: 0; cursor: pointer; font-weight: 500; }
+.dash-two  { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.dash-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); }
+/* Rarity bars */
+.rarity-rows { display: flex; flex-direction: column; gap: 14px; }
+.rarity-row  { display: flex; align-items: center; gap: 12px; }
+.rarity-lbl  { width: 36px; font-size: 11px; font-weight: 600; font-family: 'DM Mono', monospace; }
+.rarity-bg   { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.rarity-fill { height: 100%; border-radius: 4px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+.rarity-ct   { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; min-width: 36px; text-align: right; }
+.bar-C   { background: #A8A29E; }
+.bar-R   { background: #3B82F6; }
+.bar-SR  { background: #F59E0B; }
+.bar-UR  { background: #EF4444; }
+.bar-ScR { background: #8B5CF6; }
+/* Top rows */
+.top-rows   { display: flex; flex-direction: column; gap: 8px; }
+.top-row    { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); }
+.trow-img   { width: 34px; height: 34px; object-fit: contain; border-radius: 4px; background: #0f0e17; flex-shrink: 0; }
+.trow-info  { flex: 1; min-width: 0; }
+.trow-name  { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trow-sub   { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.trow-val   { font-size: 13px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--gold-dark); flex-shrink: 0; }
+.mini-bar-bg   { height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+.mini-bar-fill { height: 100%; background: var(--gold); border-radius: 2px; }
+
+/* ── SETS VIEW ── */
+.sets-scroll  { flex: 1; overflow-y: auto; }
+.sets-toolbar { padding: 16px 28px 0; display: flex; gap: 10px; }
+.sets-search  { flex: 1; max-width: 320px; padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border2); font-size: 14px; background: var(--surface); color: var(--text); outline: none; }
+.sets-search:focus { border-color: var(--gold); }
+.sets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 18px; padding: 20px 28px 40px;
+}
+
+/* Card — perspectiva 3D para tilt interactivo */
+.set-card-wrap {
+  perspective: 800px;
+}
+.set-card {
+  background: var(--surface);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  transition: box-shadow .25s, transform .25s;
+  transform-style: preserve-3d;
+  will-change: transform;
+  border: 1px solid var(--border);
+}
+.set-card:active { transform: scale(.97); }
+
+/* Imagen — ocupa casi toda la card, sin fondo negro */
+.set-img-box {
+  width: 100%;
+  padding-top: 75%;
+  position: relative;
+  overflow: hidden;
+  background: #f2efe8;
+}
+.set-img-box img {
+  position: absolute;
+  inset: 0; width: 100%; height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  padding: 6px;
+  transition: transform .35s cubic-bezier(.2,0,.2,1);
+}
+.set-card:hover .set-img-box img { transform: scale(1.06); }
+
+/* Fallback cuando no carga imagen — gradiente cálido con nombre */
+.set-img-fb {
+  position: absolute; inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  background: linear-gradient(145deg, #ede9df 0%, #ddd6c8 100%);
+  padding: 16px;
+  gap: 8px;
+}
+.set-img-fb-code {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  color: var(--gold-dark);
+  letter-spacing: 1px;
+  background: rgba(201,168,76,.15);
+  padding: 3px 10px; border-radius: 20px;
+}
+.set-img-fb-name {
+  font-size: 13px; font-weight: 600;
+  color: var(--text); text-align: center;
+  line-height: 1.35;
+}
+
+/* Overlay de progreso encima de la imagen */
+.set-img-overlay {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.55) 0%, transparent 100%);
+  padding: 20px 12px 10px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  opacity: 0;
+  transition: opacity .25s;
+}
+.set-card:hover .set-img-overlay { opacity: 1; }
+.set-ov-pct {
+  font-size: 20px; font-weight: 600; color: #fff;
+  font-family: 'DM Mono', monospace; line-height: 1;
+}
+.set-ov-label { font-size: 10px; color: rgba(255,255,255,.75); margin-top: 2px; }
+.set-ov-val {
+  font-size: 13px; font-weight: 600;
+  color: #fff; font-family: 'DM Mono', monospace;
+  background: rgba(201,168,76,.8);
+  padding: 3px 8px; border-radius: 8px;
+}
+
+/* Info debajo de la imagen */
+.set-card-body { padding: 11px 14px 13px; }
+.set-card-name { font-size: 12px; font-weight: 600; line-height: 1.35; margin-bottom: 5px; color: var(--text); }
+.set-card-code { font-size: 10px; color: var(--faint); font-family: 'DM Mono', monospace; margin-bottom: 8px; }
+.set-pbar-bg   { height: 3px; background: var(--bg); border-radius: 2px; overflow: hidden; margin-bottom: 5px; }
+.set-pbar-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width .4s; }
+.set-card-meta { display: flex; justify-content: space-between; align-items: center; }
+.set-card-prog { font-size: 11px; color: var(--muted); }
+.set-card-val  { font-size: 11px; font-weight: 600; color: var(--green); font-family: 'DM Mono', monospace; }
+
+/* Botón eliminar */
+.del-dot {
+  position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border-radius: 50%;
+  background: #EF4444; color: #fff; border: none; font-size: 15px; font-weight: 700;
+  display: none; align-items: center; justify-content: center; z-index: 10;
+  box-shadow: 0 2px 6px rgba(239,68,68,.4);
+}
+.edit-mode .del-dot  { display: flex; }
+.edit-mode .set-card { animation: wiggle .35s ease infinite alternate; }
+@keyframes wiggle { from { transform: rotate(-.8deg); } to { transform: rotate(.8deg); } }
+
+/* ── DETAIL VIEW ── */
+#view-detail { overflow: hidden; }
+.detail-scroll { flex: 1; overflow-y: auto; }
+.detail-header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 16px 28px; display: flex; gap: 16px; align-items: center; flex-shrink: 0;
+}
+.detail-back {
+  width: 34px; height: 34px; border-radius: 50%; background: var(--bg);
+  border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--muted); cursor: pointer; flex-shrink: 0;
+}
+.detail-back:hover { background: var(--border); }
+.detail-set-img { width: 48px; height: 48px; object-fit: contain; border-radius: 6px; background: #0f0e17; flex-shrink: 0; }
+.detail-info { flex: 1; min-width: 0; }
+.detail-name { font-size: 16px; font-weight: 600; }
+.detail-code { font-size: 11px; color: var(--faint); font-family: 'DM Mono', monospace; }
+.detail-stats-row { display: flex; gap: 16px; flex-shrink: 0; }
+.ds       { text-align: center; }
+.ds-val   { font-size: 16px; font-weight: 600; font-family: 'DM Mono', monospace; }
+.ds-label { font-size: 10px; color: var(--faint); text-transform: uppercase; letter-spacing: .4px; }
+.detail-toolbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 10px 28px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex-shrink: 0;
+}
+.card-search { flex: 1; min-width: 130px; padding: 7px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border2); font-size: 13px; background: var(--bg); color: var(--text); outline: none; }
+.card-search:focus { border-color: var(--gold); }
+.pill-group { display: flex; gap: 4px; }
+.pill { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1px solid var(--border2); background: var(--surface); color: var(--muted); cursor: pointer; }
+.pill.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; padding: 20px 28px 40px; }
+.card-tile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: border-color .15s; }
+.card-tile.owned { border-color: var(--gold); }
+/* FIX #6 — position:relative solo en CSS, no duplicar como inline style */
+.card-img-box { width: 100%; background: #0f0e17; position: relative; padding-top: 140%; overflow: hidden; }
+.card-img-box img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.card-img-fb { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--gold); padding: 8px; text-align: center; line-height: 1.3; }
+.card-tile-body  { padding: 8px 10px 10px; }
+.card-tile-name  { font-size: 10px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
+.card-tile-code  { font-size: 9px; color: var(--faint); font-family: 'DM Mono', monospace; margin-bottom: 4px; }
+.card-tile-row   { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.card-tile-price { font-size: 10px; font-weight: 600; color: var(--green); font-family: 'DM Mono', monospace; }
+.rarity-pip  { font-size: 9px; padding: 1px 6px; border-radius: 8px; font-weight: 600; }
+.pip-C   { background: #f0f0f0; color: #555; }
+.pip-R   { background: #DBEAFE; color: #1D4ED8; }
+.pip-SR  { background: #FEF3C7; color: #92400E; }
+.pip-UR  { background: #FEE2E2; color: #991B1B; }
+.pip-ScR { background: #EDE9FE; color: #5B21B6; }
+.pip-other { background: #f0f0f0; color: #555; }
+.qty-row { display: flex; align-items: center; gap: 6px; }
+.qty-btn {
+  width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border2);
+  background: var(--bg); font-size: 16px; display: flex; align-items: center; justify-content: center;
+  color: var(--text); -webkit-tap-highlight-color: transparent;
+}
+.qty-btn:active { background: var(--border); }
+.qty-num  { font-size: 13px; font-weight: 600; min-width: 16px; text-align: center; font-family: 'DM Mono', monospace; }
+.owned-check { position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; z-index: 2; }
+
+/* Ed1/Unl controls */
+.ed-section { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.ed-row {
+  display: flex; align-items: center; gap: 4px;
+}
+.ed-label {
+  font-size: 9px; font-weight: 700; width: 28px; flex-shrink: 0;
+  padding: 2px 4px; border-radius: 4px; text-align: center;
+}
+.ed-label.ed1 { background: var(--gold-light); color: var(--gold-dark); }
+.ed-label.unl { background: var(--bg); color: var(--faint); border: 1px solid var(--border); }
+.ed-qty-btn {
+  width: 20px; height: 20px; border-radius: 5px; border: 1px solid var(--border2);
+  background: var(--bg); font-size: 13px; display: flex; align-items: center;
+  justify-content: center; color: var(--text); flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.ed-qty-btn:active { background: var(--border); }
+.ed-qty-num { font-size: 11px; font-weight: 600; min-width: 14px; text-align: center; font-family: 'DM Mono', monospace; }
+.ed-price { font-size: 9px; color: var(--green); font-family: 'DM Mono', monospace; margin-left: auto; }
+
+/* ── SEARCH VIEW ── */
+.search-scroll { flex: 1; overflow-y: auto; }
+.search-hero  { padding: 32px 28px 20px; }
+.search-hero-title { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+.search-hero-sub   { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.search-bar-wrap   { position: relative; max-width: 560px; }
+.search-main-input { width: 100%; padding: 12px 16px 12px 44px; border-radius: var(--radius); border: 1px solid var(--border2); font-size: 15px; background: var(--surface); color: var(--text); outline: none; box-shadow: var(--shadow); }
+.search-main-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,.15); }
+.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--faint); pointer-events: none; }
+.search-results { padding: 0 28px 40px; }
+.search-table { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); width: 100%; }
+.search-table table { width: 100%; border-collapse: collapse; }
+.search-table th { padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .6px; border-bottom: 1px solid var(--border); text-align: left; background: var(--bg); }
+.search-table td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.search-table tr:last-child td { border-bottom: none; }
+.search-table tr:hover td { background: var(--gold-light); }
+.sr-img   { width: 32px; height: 32px; object-fit: contain; border-radius: 4px; background: #0f0e17; }
+.sr-name  { font-weight: 500; }
+.sr-code  { font-size: 11px; color: var(--faint); font-family: 'DM Mono', monospace; }
+.sr-set   { font-size: 12px; color: var(--muted); }
+.sr-price { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--green); }
+.badge-owned   { background: var(--green-bg); color: var(--green); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+.badge-missing { background: var(--bg); color: var(--faint); font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border); }
+.search-empty { padding: 48px; text-align: center; color: var(--faint); font-size: 14px; }
+.search-hint  { padding: 48px; text-align: center; color: var(--faint); font-size: 14px; }
+
+/* ── MODALS ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+.modal-sheet { background: var(--surface); border-radius: 16px; width: 100%; max-width: 520px; max-height: 75vh; display: flex; flex-direction: column; padding: 20px; box-shadow: var(--shadow-md); }
+.modal-title  { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
+.modal-input  { width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border2); font-size: 15px; background: var(--bg); color: var(--text); outline: none; margin-bottom: 10px; }
+.modal-input:focus { border-color: var(--gold); }
+.modal-list   { overflow-y: auto; flex: 1; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.modal-item   { display: flex; align-items: center; gap: 12px; padding: 11px 14px; cursor: pointer; border-bottom: 1px solid var(--border); }
+.modal-item:last-child { border-bottom: none; }
+.modal-item:hover { background: var(--gold-light); }
+.modal-item.added { opacity: .4; pointer-events: none; }
+.modal-item img      { width: 36px; height: 36px; object-fit: contain; border-radius: 4px; background: #0f0e17; flex-shrink: 0; }
+.modal-item-name     { font-size: 13px; font-weight: 500; }
+.modal-item-meta     { font-size: 11px; color: var(--faint); margin-top: 2px; font-family: 'DM Mono', monospace; }
+.modal-footer        { padding-top: 12px; display: flex; justify-content: flex-end; }
+.modal-sm { font-size: 13px; color: var(--faint); padding: 20px; text-align: center; }
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 20px; }
+.confirm-box { background: var(--surface); border-radius: 16px; padding: 24px; width: 100%; max-width: 320px; text-align: center; box-shadow: var(--shadow-md); }
+.confirm-box h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.confirm-box p  { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+.confirm-btns   { display: flex; gap: 8px; }
+.confirm-btns button { flex: 1; padding: 11px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; border: none; }
+.cb-cancel { background: var(--bg); color: var(--text); }
+.cb-delete { background: #EF4444; color: #fff; }
+
+/* ── STATE ── */
+.state-msg { padding: 48px; text-align: center; color: var(--faint); font-size: 14px; grid-column: 1/-1; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  #sidebar       { display: none; }
+  #bottom-bar    { display: flex; }
+  #mobile-header { display: flex; }
+  #main          { padding-bottom: var(--bar-h); }
+  .page-header   { padding: 16px 16px 0; }
+  .dash-content  { padding: 16px 16px 40px; }
+  .stat-row      { grid-template-columns: repeat(2,1fr); gap: 10px; }
+  .dash-two      { grid-template-columns: 1fr; }
+  .sets-toolbar  { padding: 12px 16px 0; }
+  .sets-grid     { padding: 12px 16px 40px; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 12px; }
+  .cards-grid    { padding: 14px 16px 40px; grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 10px; }
+  .detail-header  { padding: 12px 16px; }
+  .detail-toolbar { padding: 10px 16px; }
+  .detail-stats-row { display: none; }
+  .search-hero    { padding: 20px 16px 14px; }
+  .search-results { padding: 0 16px 40px; }
+}
+/* FIX #1 — media anidado eliminado; overlay se maneja aquí */
+@media (max-width: 768px) {
+  .overlay { align-items: flex-end; padding: 0; }
+  .modal-sheet { border-radius: 20px 20px 0 0; max-height: 80vh; }
+}
+</style>
+</head>
+<body>
+<div id="shell">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">YGO Vault</div>
+      <div class="logo-sub">Inventario</div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="dashboard" onclick="navTo('dashboard')">
+        <span class="nav-icon">◈</span> Dashboard
+      </button>
+      <button class="nav-item" data-view="sets" onclick="navTo('sets')">
+        <span class="nav-icon">⊞</span> Sets
+      </button>
+      <button class="nav-item" data-view="search" onclick="navTo('search')">
+        <span class="nav-icon">⌕</span> Búsqueda
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="sidebar-action" onclick="toggleEditMode()">
+        <span>✎</span><span id="edit-label">Editar sets</span>
+      </button>
+      <button class="sidebar-add" onclick="openAddModal()">+ Agregar set</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main">
+
+    <!-- Mobile header -->
+    <div id="mobile-header">
+      <div class="mobile-title" id="mobile-title">Dashboard</div>
+      <div class="mobile-actions">
+        <button class="btn btn-outline" style="padding:6px 12px;font-size:12px" onclick="toggleEditMode()">Editar</button>
+        <button class="btn btn-gold"    style="padding:6px 12px;font-size:12px" onclick="openAddModal()">+ Set</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="view-dashboard" class="view active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-sub" id="dash-date"></div>
+        </div>
+      </div>
+      <div class="dash-scroll">
+        <div class="dash-content">
+          <div class="stat-row" id="stat-row"></div>
+          <div class="dash-two">
+            <div class="dash-panel">
+              <div class="section-title">Progreso por rareza</div>
+              <div class="rarity-rows" id="rarity-rows"></div>
+            </div>
+            <div class="dash-panel">
+              <div class="section-title">
+                Sets más completos
+                <span class="section-link" onclick="navTo('sets')">Ver todos →</span>
+              </div>
+              <div class="top-rows" id="top-sets"></div>
+            </div>
+          </div>
+          <div>
+            <div class="section-title">Valor estimado por set</div>
+            <div class="top-rows" id="val-by-set"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETS -->
+    <div id="view-sets" class="view">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Sets</div>
+          <div class="page-sub" id="sets-count-label"></div>
+        </div>
+      </div>
+      <div class="sets-scroll">
+        <div class="sets-toolbar">
+          <input class="sets-search" id="sets-search" placeholder="Buscar set..." oninput="filterSets(this.value)">
+        </div>
+        <div class="sets-grid" id="sets-grid"></div>
+      </div>
+    </div>
+
+    <!-- DETAIL -->
+    <div id="view-detail" class="view">
+      <div class="detail-header">
+        <button class="detail-back" onclick="backFromDetail()">‹</button>
+        <img class="detail-set-img" id="detail-set-img" alt="">
+        <div class="detail-info">
+          <div class="detail-name" id="detail-name"></div>
+          <div class="detail-code" id="detail-code"></div>
+        </div>
+        <div class="detail-stats-row" id="detail-stats"></div>
+      </div>
+      <div class="detail-toolbar">
+        <input class="card-search" id="card-search" placeholder="Buscar carta..." oninput="filterCards(this.value)">
+        <div class="pill-group">
+          <button class="pill active" id="pill-all"     onclick="setPillFilter('all',this)">Todas</button>
+          <button class="pill"        id="pill-owned"   onclick="setPillFilter('owned',this)">Tengo</button>
+          <button class="pill"        id="pill-missing" onclick="setPillFilter('missing',this)">Faltan</button>
+        </div>
+      </div>
+      <div class="detail-scroll">
+        <div class="cards-grid" id="cards-grid"></div>
+      </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div id="view-search" class="view">
+      <div class="search-scroll">
+        <div class="search-hero">
+          <div class="search-hero-title">Búsqueda global</div>
+          <div class="search-hero-sub">Busca cualquier carta en todos tus sets cargados</div>
+          <div class="search-bar-wrap">
+            <span class="search-icon">⌕</span>
+            <input class="search-main-input" id="search-main" placeholder="Nombre de carta..." oninput="globalSearch(this.value)">
+          </div>
+        </div>
+        <div class="search-results" id="search-results">
+          <div class="search-hint">Escribe el nombre de una carta para buscarla.</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Bottom bar -->
+<div id="bottom-bar">
+  <button class="bar-item active" data-view="dashboard" onclick="navTo('dashboard')">
+    <span class="bar-icon">◈</span><span>Dashboard</span>
+  </button>
+  <button class="bar-item" data-view="sets" onclick="navTo('sets')">
+    <span class="bar-icon">⊞</span><span>Sets</span>
+  </button>
+  <button class="bar-item" data-view="search" onclick="navTo('search')">
+    <span class="bar-icon">⌕</span><span>Búsqueda</span>
+  </button>
+</div>
+
+<!-- Add Set Modal -->
+<div class="overlay" id="add-modal" style="display:none" onclick="handleOverlayClick(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-title">Agregar set</div>
+    <input class="modal-input" id="modal-search-input" placeholder="Nombre del set..." oninput="searchSetsModal(this.value)">
+    <div class="modal-list" id="modal-list"><div class="modal-sm">Escribe para buscar...</div></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeAddModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm delete -->
+<div class="confirm-overlay" id="confirm-dlg" style="display:none">
+  <div class="confirm-box">
+    <h4>¿Eliminar set?</h4>
+    <p>Se borrará el progreso guardado de este set. Esta acción no se puede deshacer.</p>
+    <div class="confirm-btns">
+      <button class="cb-cancel" onclick="cancelDelete()">Cancelar</button>
+      <button class="cb-delete" onclick="confirmDelete()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══ DATOS ══ */
+const DEFAULT_SETS = [
+  { name:"Maze of Millennia",                        code:"MZMI" },
+  { name:"Valiant Smashers",                         code:"VASM" },
+  { name:"25th Anniversary Rarity Collection",       code:"RA01" },
+  { name:"Age of Overlord",                          code:"AGOV" },
+  { name:"Legendary Duelists: Soulburning Volcano",  code:"LED9" },
+  { name:"Duelist Nexus",                            code:"DUNE" },
+  { name:"Battles of Legend: Monstrous Revenge",     code:"BLMR" },
+  { name:"Wild Survivors",                           code:"WISU" },
+  { name:"Cyberstorm Access",                        code:"CYAC" },
+  { name:"Invasion of Chaos",                        code:"IOC"  },
+  { name:"Pharaoh's Servant",                        code:"PSV"  },
+  { name:"Spell Ruler",                              code:"SRL"  },
+  { name:"Metal Raiders",                            code:"MRD"  },
+  { name:"Legend of Blue Eyes White Dragon",         code:"LOB"  },
+  { name:"Maze of Memories",                         code:"MAZE" },
+  { name:"Photon Hypernova",                         code:"PHHY" },
+  { name:"Amazing Defenders",                        code:"AMDE" },
+  { name:"Battles of Legend: Crystal Revenge",       code:"BLCR" },
+  { name:"Darkwing Blast",                           code:"DABL" },
+  { name:"Power of the Elements",                    code:"POTE" },
+  { name:"Tactical Masters",                         code:"TAMA" },
+  { name:"Legendary Duelists: Duels From the Deep",  code:"LED8" },
+  { name:"Dimension Force",                          code:"DIFO" },
+  { name:"Battle of Chaos",                          code:"BACH" },
+  { name:"The Grand Creators",                       code:"GRCR" },
+  { name:"Brothers of Legend",                       code:"BROL" },
+  { name:"Burst of Destiny",                         code:"BODE" },
+  { name:"Legendary Duelists: Synchro Storm",        code:"LED7" },
+  { name:"Dawn of Majesty",                          code:"DAMA" },
+  { name:"King's Court",                             code:"KICO" },
+  { name:"Lightning Overdrive",                      code:"LIOV" },
+  { name:"Ancient Guardians",                        code:"ANGU" },
+  { name:"Blazing Vortex",                           code:"BLVO" },
+  { name:"Genesis Impact",                           code:"GEIM" }
+];
+
+const SET_IMG = "https://images.ygoprodeck.com/images/sets/";
+
+/* ══ ESTADO ══ */
+let sets      = JSON.parse(localStorage.getItem('ygo_sets')      || 'null') || JSON.parse(JSON.stringify(DEFAULT_SETS));
+let inventory = JSON.parse(localStorage.getItem('ygo_inventory') || '{}');
+let cardCache = JSON.parse(localStorage.getItem('ygo_card_cache')|| '{}');
+
+let editMode       = false;
+let currentView    = 'dashboard';   // FIX #3 — nunca puede ser 'detail'
+let prevView       = 'sets';
+let currentSetCode = null;
+let currentCards   = [];
+let cardFilter     = 'all';
+let cardSearch     = '';
+let allApiSets     = null;
+let pendingDel     = null;
+let searchTimer    = null;
+let globalTimer    = null;
+
+/* ══ PERSISTENCIA ══ */
+function save() {
+  localStorage.setItem('ygo_sets',       JSON.stringify(sets));
+  localStorage.setItem('ygo_inventory',  JSON.stringify(inventory));
+  localStorage.setItem('ygo_card_cache', JSON.stringify(cardCache));
+}
+
+/* ══ IMAGEN HELPERS ══ */
+function setImgUrls(code) {
+  return [SET_IMG + code + ".jpg", SET_IMG + code + "-EN.jpg"];
+}
+
+// FIX #8 — fbEl puede ser null sin que crashee
+function tryImg(imgEl, urls, fbEl) {
+  if (!urls.length) {
+    imgEl.style.display = 'none';
+    if (fbEl) fbEl.style.display = 'flex';
+    return;
+  }
+  const [first, ...rest] = urls;
+  imgEl.src     = first;
+  imgEl.onload  = () => { imgEl.style.display = ''; if (fbEl) fbEl.style.display = 'none'; };
+  imgEl.onerror = () => tryImg(imgEl, rest, fbEl);
+}
+
+/* ══ RAREZA ══ */
+function rarityKey(r) {
+  if (!r) return 'other';
+  const l = r.toLowerCase();
+  if (l.includes('secret')) return 'ScR';
+  if (l.includes('ultra'))  return 'UR';
+  if (l.includes('super'))  return 'SR';
+  if (l.includes('rare'))   return 'R';
+  if (l.includes('common')) return 'C';
+  return 'other';
+}
+function rarityLabel(r) {
+  const k = rarityKey(r);
+  return k === 'other' ? (r || '').substring(0, 4) : k;
+}
+
+/* ══ PRECIOS ══ */
+const ED1_MULTIPLIER = 1.8;
+
+function cardPriceBase(card) {
+  const p = card.card_prices && card.card_prices[0];
+  if (!p) return 0;
+  return parseFloat(p.tcgplayer_price || p.cardmarket_price || 0) || 0;
+}
+function cardPriceEd1(card) { return cardPriceBase(card) * ED1_MULTIPLIER; }
+function cardPrice(card)    { return cardPriceBase(card); }
+function fmtUSD(n) { return '$' + n.toFixed(2); }
+
+/* Helpers qty ed1/unl — migra automáticamente valores viejos (número plano) */
+function getQtyUnl(key) {
+  const v = inventory[key];
+  if (!v) return 0;
+  if (typeof v === 'number') return v; // migración: valor viejo = Unl
+  return v.unl || 0;
+}
+function getQtyEd1(key) {
+  const v = inventory[key];
+  if (!v || typeof v === 'number') return 0;
+  return v.ed1 || 0;
+}
+function getTotalQty(key) { return getQtyEd1(key) + getQtyUnl(key); }
+function setQty(key, ed1, unl) {
+  if (ed1 === 0 && unl === 0) { delete inventory[key]; }
+  else inventory[key] = { ed1, unl };
+}
+function cardValueForKey(card) {
+  return cardPriceEd1(card) * getQtyEd1(card.key) + cardPriceBase(card) * getQtyUnl(card.key);
+}
+
+/* ══ NAVEGACIÓN ══
+   FIX #2  — 'detail' no tiene botones de nav, así que su lógica
+              de active se salta limpiamente.
+   FIX #4  — el guard solo bloquea si realmente es la misma vista
+              Y no venimos de detalle (que necesita re-render). */
+const VIEW_TITLES = { dashboard:'Dashboard', sets:'Sets', search:'Búsqueda', detail:'' };
+
+function navTo(viewId) {
+  // Solo bloquear si es exactamente la misma vista activa
+  if (viewId === currentView) return;
+
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById('view-' + viewId);
+  if (el) el.classList.add('active');
+
+  // Actualizar nav activo solo para vistas con botones de nav
+  if (viewId !== 'detail') {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.bar-item').forEach(b => b.classList.remove('active'));
+    const sBtn = document.querySelector(`.nav-item[data-view="${viewId}"]`);
+    const bBtn = document.querySelector(`.bar-item[data-view="${viewId}"]`);
+    if (sBtn) sBtn.classList.add('active');
+    if (bBtn) bBtn.classList.add('active');
+    document.getElementById('mobile-title').textContent = VIEW_TITLES[viewId] || '';
+  }
+
+  // Siempre actualizar currentView, incluyendo 'detail'
+  currentView = viewId;
+
+  if (viewId === 'dashboard') renderDashboard();
+  if (viewId === 'sets')      { document.getElementById('sets-search').value = ''; renderSetsView(); }
+}
+
+function openDetail(code) {
+  // FIX #3 — prevView solo se actualiza si no es 'detail'
+  if (currentView !== 'detail') prevView = currentView;
+  navTo('detail');
+  document.getElementById('mobile-title').textContent = '';
+  loadSetDetail(code);
+}
+
+function backFromDetail() {
+  // FIX #3 — garantizar que prevView nunca es 'detail'
+  const target = (prevView && prevView !== 'detail') ? prevView : 'sets';
+  navTo(target);
+}
+
+/* ══ EDIT MODE ══ */
+function toggleEditMode() {
+  editMode = !editMode;
+  document.getElementById('edit-label').textContent = editMode ? 'Listo' : 'Editar sets';
+  if (currentView === 'sets') renderSetsView();
+}
+
+/* ══ DASHBOARD ══ */
+function calcStats() {
+  let totalCards = 0, totalOwned = 0, totalValue = 0;
+  const rarityCounts = { C:0, R:0, SR:0, UR:0, ScR:0 };
+  const setValues = [];
+
+  sets.forEach(s => {
+    const cached = cardCache[s.code] || [];
+    let setOwned = 0, setValue = 0;
+    cached.forEach(card => {
+      const total = getTotalQty(card.key);
+      const val   = cardValueForKey(card);
+      totalCards++;
+      if (total > 0) {
+        totalOwned++;
+        setOwned++;
+        setValue   += val;
+        totalValue += val;
+        const rk = rarityKey(card.rarity);
+        if (rk in rarityCounts) rarityCounts[rk]++;
+      }
+    });
+    setValues.push({ s, owned: setOwned, total: cached.length, value: setValue });
+  });
+
+  return { totalCards, totalOwned, totalValue, rarityCounts, setValues };
+}
+
+function renderDashboard() {
+  document.getElementById('dash-date').textContent =
+    new Date().toLocaleDateString('es-MX', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  const { totalCards, totalOwned, totalValue, rarityCounts, setValues } = calcStats();
+  const pct = totalCards > 0 ? Math.round(totalOwned / totalCards * 100) : 0;
+  const completeSets = sets.filter(s => {
+    const c = cardCache[s.code];
+    return c && c.length > 0 && c.every(card => getTotalQty(card.key) > 0);
+  }).length;
+
+  document.getElementById('stat-row').innerHTML = `
+    <div class="stat-card accent-gold">
+      <div class="sc-label">Cartas en colección</div>
+      <div class="sc-value">${totalOwned.toLocaleString()}</div>
+      <div class="sc-sub">${pct}% de ${totalCards.toLocaleString()} rastreadas</div>
+    </div>
+    <div class="stat-card accent-green">
+      <div class="sc-label">Valor estimado</div>
+      <div class="sc-value">${fmtUSD(totalValue)}</div>
+      <div class="sc-sub">Precios TCGPlayer</div>
+    </div>
+    <div class="stat-card accent-blue">
+      <div class="sc-label">Sets en colección</div>
+      <div class="sc-value">${sets.length}</div>
+      <div class="sc-sub">${completeSets} sets completos</div>
+    </div>
+    <div class="stat-card accent-red">
+      <div class="sc-label">Cartas faltantes</div>
+      <div class="sc-value">${(totalCards - totalOwned).toLocaleString()}</div>
+      <div class="sc-sub">Para completar todos los sets</div>
+    </div>`;
+
+  const rarityMeta = [
+    { key:'C',   color:'#A8A29E' },
+    { key:'R',   color:'#3B82F6' },
+    { key:'SR',  color:'#F59E0B' },
+    { key:'UR',  color:'#EF4444' },
+    { key:'ScR', color:'#8B5CF6' },
+  ];
+  const maxR = Math.max(...Object.values(rarityCounts), 1);
+  document.getElementById('rarity-rows').innerHTML = rarityMeta.map(r => `
+    <div class="rarity-row">
+      <div class="rarity-lbl" style="color:${r.color}">${r.key}</div>
+      <div class="rarity-bg"><div class="rarity-fill bar-${r.key}" style="width:${Math.round(rarityCounts[r.key]/maxR*100)}%"></div></div>
+      <div class="rarity-ct">${rarityCounts[r.key]}</div>
+    </div>`).join('');
+
+  const sorted = [...setValues].filter(x => x.total > 0)
+    .sort((a,b) => (b.owned/b.total) - (a.owned/a.total)).slice(0,5);
+
+  document.getElementById('top-sets').innerHTML = sorted.length
+    ? sorted.map(x => {
+        const p = Math.round(x.owned / x.total * 100);
+        return `
+          <div class="top-row">
+            <img class="trow-img" id="tsimg-${x.s.code}" alt="${x.s.name}" onerror="this.style.opacity='.3'">
+            <div class="trow-info">
+              <div class="trow-name">${x.s.name}</div>
+              <div class="trow-sub">${x.owned}/${x.total} cartas</div>
+              <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${p}%"></div></div>
+            </div>
+            <div class="trow-val">${p}%</div>
+          </div>`;
+      }).join('')
+    : '<div style="font-size:13px;color:var(--faint);padding:8px 0">Abre sets para ver progreso.</div>';
+
+  sorted.forEach(x => {
+    const img = document.getElementById(`tsimg-${x.s.code}`);
+    if (img) img.src = SET_IMG + x.s.code + ".jpg";
+  });
+
+  const byCost = [...setValues].filter(x => x.value > 0)
+    .sort((a,b) => b.value - a.value).slice(0,5);
+
+  document.getElementById('val-by-set').innerHTML = byCost.length
+    ? byCost.map(x => `
+        <div class="top-row">
+          <img class="trow-img" src="${SET_IMG}${x.s.code}.jpg" onerror="this.style.opacity='.3'" alt="">
+          <div class="trow-info">
+            <div class="trow-name">${x.s.name}</div>
+            <div class="trow-sub">${x.owned} cartas · ${x.s.code}</div>
+          </div>
+          <div class="trow-val">${fmtUSD(x.value)}</div>
+        </div>`).join('')
+    : '<div style="font-size:13px;color:var(--faint);padding:8px 0">Marca cartas para ver valor.</div>';
+}
+
+/* ══ SETS VIEW ══ */
+function getSetProgress(code) {
+  const cached = cardCache[code] || [];
+  return { owned: cached.filter(c => getTotalQty(c.key) > 0).length, total: cached.length };
+}
+function getSetValue(code) {
+  return (cardCache[code]||[]).reduce((s,c) => s + cardValueForKey(c), 0);
+}
+
+function renderSetsView(list) {
+  const show = list || sets;
+  document.getElementById('sets-count-label').textContent = `${show.length} set${show.length!==1?'s':''}`;
+  const grid = document.getElementById('sets-grid');
+  if (!show.length) { grid.innerHTML = '<div class="state-msg">No hay sets. Agrega uno arriba.</div>'; return; }
+
+  grid.innerHTML = show.map(s => {
+    const p   = getSetProgress(s.code);
+    const pct = p.total > 0 ? Math.round(p.owned/p.total*100) : 0;
+    const val = getSetValue(s.code);
+    return `
+      <div class="set-card-wrap">
+        <div class="set-card" id="sc-${s.code}" onclick="handleSetClick(event,'${s.code}')">
+          <button class="del-dot" onclick="event.stopPropagation();askDelete('${s.code}')">×</button>
+          <div class="set-img-box">
+            <img id="si-${s.code}" alt="${s.name}">
+            <div class="set-img-overlay">
+              <div>
+                <div class="set-ov-pct">${pct}%</div>
+                <div class="set-ov-label">${p.total>0?`${p.owned}/${p.total} cartas`:'Sin cargar'}</div>
+              </div>
+              ${val>0?`<div class="set-ov-val">${fmtUSD(val)}</div>`:''}
+            </div>
+            <div class="set-img-fb" id="sifb-${s.code}">
+              <div class="set-img-fb-code">${s.code}</div>
+              <div class="set-img-fb-name">${s.name}</div>
+            </div>
+          </div>
+          <div class="set-card-body">
+            <div class="set-card-name">${s.name}</div>
+            <div class="set-pbar-bg"><div class="set-pbar-fill" style="width:${pct}%"></div></div>
+            <div class="set-card-meta">
+              <div class="set-card-prog">${p.total>0?`${p.owned}/${p.total}`:'Sin cargar'}</div>
+              ${val>0?`<div class="set-card-val">${fmtUSD(val)}</div>`:''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  if (editMode) grid.classList.add('edit-mode');
+  else          grid.classList.remove('edit-mode');
+
+  show.forEach(s => {
+    const img = document.getElementById(`si-${s.code}`);
+    const fb  = document.getElementById(`sifb-${s.code}`);
+    if (img && fb) tryImg(img, setImgUrls(s.code), fb);
+  });
+
+  // Tilt 3D interactivo por mouse/touch
+  grid.querySelectorAll('.set-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      if (editMode) return;
+      const r   = card.getBoundingClientRect();
+      const x   = e.clientX - r.left;
+      const y   = e.clientY - r.top;
+      const cx  = r.width  / 2;
+      const cy  = r.height / 2;
+      const rx  = ((y - cy) / cy) * -8;  // max ±8deg
+      const ry  = ((x - cx) / cx) *  8;
+      card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale(1.02)`;
+      card.style.boxShadow = `${-ry*.5}px ${rx*.5}px 20px rgba(0,0,0,.13)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+      card.style.boxShadow = '';
+    });
+  });
+}
+
+function handleSetClick(e, code) { if (!editMode) openDetail(code); }
+
+// FIX #9 — filterSets NO limpia el input (eso lo hace navTo al entrar a sets)
+function filterSets(q) {
+  if (!q) { renderSetsView(); return; }
+  renderSetsView(sets.filter(s =>
+    s.name.toLowerCase().includes(q.toLowerCase()) ||
+    s.code.toLowerCase().includes(q.toLowerCase())
+  ));
+}
+
+/* ══ DETAIL ══ */
+async function loadSetDetail(code) {
+  currentSetCode = code;
+  cardFilter = 'all';
+  cardSearch = '';
+  const setObj = sets.find(s => s.code === code);
+  if (!setObj) return;
+
+  document.getElementById('detail-name').textContent = setObj.name;
+  document.getElementById('detail-code').textContent = code;
+  document.getElementById('mobile-title').textContent = setObj.name;
+  document.getElementById('card-search').value = '';
+  document.getElementById('pill-all').classList.add('active');
+  document.getElementById('pill-owned').classList.remove('active');
+  document.getElementById('pill-missing').classList.remove('active');
+
+  // FIX #8 — fbEl es null aquí, tryImg lo maneja sin crash
+  const dimg = document.getElementById('detail-set-img');
+  dimg.src = '';
+  tryImg(dimg, setImgUrls(code), null);
+
+  document.getElementById('cards-grid').innerHTML = '<div class="state-msg">Cargando cartas...</div>';
+
+  if (cardCache[code] && cardCache[code].length > 0) {
+    currentCards = cardCache[code];
+    renderDetailStats();
+    renderCards();
+    return;
+  }
+
+  try {
+    const r    = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?cardset=${encodeURIComponent(setObj.name)}`);
+    const data = await r.json();
+    if (!data.data) {
+      document.getElementById('cards-grid').innerHTML = '<div class="state-msg">No se encontraron cartas.</div>';
+      return;
+    }
+
+    currentCards = [];
+    data.data.forEach(card => {
+      const csets = (card.card_sets||[]).filter(s => s.set_code && s.set_code.toUpperCase().startsWith(code.toUpperCase()));
+      if (csets.length) {
+        csets.forEach(cs => currentCards.push({
+          id:   card.id,
+          name: card.name,
+          img:  card.card_images?.[0]?.image_url_small || '',
+          code: cs.set_code,
+          rarity: cs.set_rarity || '',
+          // FIX #7 — key única: código de carta + id para evitar colisiones
+          key: cs.set_code || `${code}-${card.id}`,
+          card_prices: card.card_prices
+        }));
+      } else {
+        currentCards.push({
+          id:   card.id,
+          name: card.name,
+          img:  card.card_images?.[0]?.image_url_small || '',
+          code: '',
+          rarity: '',
+          key: `${code}-${card.id}`,
+          card_prices: card.card_prices
+        });
+      }
+    });
+
+    currentCards.sort((a,b) => a.code.localeCompare(b.code));
+    cardCache[code] = currentCards;
+    save();
+    renderDetailStats();
+    renderCards();
+  } catch(e) {
+    document.getElementById('cards-grid').innerHTML = '<div class="state-msg">Error al cargar. Verifica tu conexión.</div>';
+  }
+}
+
+function renderDetailStats() {
+  const owned  = currentCards.filter(c => getTotalQty(c.key) > 0).length;
+  const value  = currentCards.reduce((s,c) => s + cardValueForKey(c), 0);
+  const ed1tot = currentCards.reduce((s,c) => s + getQtyEd1(c.key), 0);
+  const unltot = currentCards.reduce((s,c) => s + getQtyUnl(c.key), 0);
+  document.getElementById('detail-stats').innerHTML = `
+    <div class="ds"><div class="ds-val">${currentCards.length}</div><div class="ds-label">Total</div></div>
+    <div class="ds"><div class="ds-val">${owned}</div><div class="ds-label">Tengo</div></div>
+    <div class="ds"><div class="ds-val">${currentCards.length-owned}</div><div class="ds-label">Faltan</div></div>
+    <div class="ds"><div class="ds-val" style="font-size:12px">${ed1tot} <span style="color:var(--gold);font-size:9px">1st</span> / ${unltot} <span style="color:var(--faint);font-size:9px">Unl</span></div><div class="ds-label">Edición</div></div>
+    <div class="ds"><div class="ds-val" style="color:var(--green)">${fmtUSD(value)}</div><div class="ds-label">Valor</div></div>`;
+}
+
+/* ══ RENDER CARTAS ══ */
+function renderCards() {
+  let list = [...currentCards];
+  if (cardFilter === 'owned')   list = list.filter(c => getTotalQty(c.key) > 0);
+  if (cardFilter === 'missing') list = list.filter(c => getTotalQty(c.key) === 0);
+  if (cardSearch) list = list.filter(c =>
+    c.name.toLowerCase().includes(cardSearch) ||
+    c.code.toLowerCase().includes(cardSearch)
+  );
+
+  const grid = document.getElementById('cards-grid');
+  if (!list.length) { grid.innerHTML = '<div class="state-msg">Sin cartas con ese filtro.</div>'; return; }
+
+  grid.innerHTML = list.map(c => {
+    const total = getTotalQty(c.key);
+    const ed1   = getQtyEd1(c.key);
+    const unl   = getQtyUnl(c.key);
+    const rk    = rarityKey(c.rarity);
+    const rl    = rarityLabel(c.rarity);
+    const priceB = cardPriceBase(c);
+    const priceE = cardPriceEd1(c);
+    const sk    = c.key.replace(/[^a-z0-9]/gi, '_');
+    return `
+      <div class="card-tile${total>0?' owned':''}" id="ct-${sk}">
+        <div class="card-img-box">
+          ${total>0?'<div class="owned-check">✓</div>':''}
+          ${c.img?`<img src="${c.img}" alt="${c.name}" loading="lazy"
+                        onerror="this.style.display='none';var fb=document.getElementById('cfb-${sk}');if(fb)fb.style.display='flex'">`: ''}
+          <div class="card-img-fb" id="cfb-${sk}" style="display:${c.img?'none':'flex'}">${c.name}</div>
+        </div>
+        <div class="card-tile-body">
+          <div class="card-tile-name">${c.name}</div>
+          ${c.code?`<div class="card-tile-code">${c.code}</div>`:''}
+          <div class="card-tile-row">
+            ${priceB>0?`<div class="card-tile-price">${fmtUSD(priceB)}</div>`:'<div></div>'}
+            ${rl?`<div class="rarity-pip pip-${rk}">${rl}</div>`:''}
+          </div>
+          <div class="ed-section">
+            <div class="ed-row">
+              <span class="ed-label ed1">1st</span>
+              <button class="ed-qty-btn" data-key="${c.key}" data-ed="ed1" data-d="-1" onclick="changeEdQty(this)">−</button>
+              <div class="ed-qty-num" id="e1-${sk}">${ed1}</div>
+              <button class="ed-qty-btn" data-key="${c.key}" data-ed="ed1" data-d="1"  onclick="changeEdQty(this)">+</button>
+              ${priceE>0?`<span class="ed-price">${fmtUSD(priceE)}</span>`:''}
+            </div>
+            <div class="ed-row">
+              <span class="ed-label unl">Unl</span>
+              <button class="ed-qty-btn" data-key="${c.key}" data-ed="unl" data-d="-1" onclick="changeEdQty(this)">−</button>
+              <div class="ed-qty-num" id="eu-${sk}">${unl}</div>
+              <button class="ed-qty-btn" data-key="${c.key}" data-ed="unl" data-d="1"  onclick="changeEdQty(this)">+</button>
+              ${priceB>0?`<span class="ed-price">${fmtUSD(priceB)}</span>`:''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function changeEdQty(btn) {
+  const key   = btn.dataset.key;
+  const ed    = btn.dataset.ed;      // 'ed1' o 'unl'
+  const delta = parseInt(btn.dataset.d, 10);
+  const cur1  = getQtyEd1(key);
+  const curU  = getQtyUnl(key);
+  const newE  = ed === 'ed1' ? Math.max(0, cur1 + delta) : cur1;
+  const newU  = ed === 'unl' ? Math.max(0, curU + delta) : curU;
+  setQty(key, newE, newU);
+  save();
+  renderDetailStats();
+
+  const sk    = key.replace(/[^a-z0-9]/gi, '_');
+  const tile  = document.getElementById(`ct-${sk}`);
+  const total = newE + newU;
+  if (!tile) return;
+
+  tile.classList.toggle('owned', total > 0);
+  const chk = tile.querySelector('.owned-check');
+  if (total > 0 && !chk) {
+    const d = document.createElement('div');
+    d.className = 'owned-check'; d.textContent = '✓';
+    tile.querySelector('.card-img-box').prepend(d);
+  } else if (total === 0 && chk) { chk.remove(); }
+
+  const e1el = document.getElementById(`e1-${sk}`);
+  const euel = document.getElementById(`eu-${sk}`);
+  if (e1el) e1el.textContent = newE;
+  if (euel) euel.textContent = newU;
+}
+
+function setPillFilter(f, btn) {
+  cardFilter = f;
+  document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards();
+}
+function filterCards(q) { cardSearch = q.toLowerCase(); renderCards(); }
+
+/* ══ BÚSQUEDA GLOBAL ══ */
+function globalSearch(q) {
+  clearTimeout(globalTimer);
+  const res = document.getElementById('search-results');
+  if (!q.trim()) {
+    res.innerHTML = '<div class="search-hint">Escribe el nombre de una carta para buscarla.</div>';
+    return;
+  }
+  res.innerHTML = '<div class="search-hint">Buscando...</div>';
+  globalTimer = setTimeout(() => {
+    const ql = q.toLowerCase();
+    const results = [];
+    sets.forEach(s => {
+      (cardCache[s.code]||[]).forEach(c => {
+        if (c.name.toLowerCase().includes(ql) || c.code.toLowerCase().includes(ql))
+          results.push({ ...c, setName: s.name, setCode: s.code });
+      });
+    });
+    if (!results.length) {
+      res.innerHTML = `<div class="search-empty">Sin resultados para "<strong>${q}</strong>".<br><span style="font-size:12px;color:var(--faint)">Solo busca en sets que ya hayas abierto.</span></div>`;
+      return;
+    }
+    const rows = results.slice(0, 80).map(c => {
+      const total = getTotalQty(c.key);
+      const ed1   = getQtyEd1(c.key);
+      const unl   = getQtyUnl(c.key);
+      const rk    = rarityKey(c.rarity);
+      const rl    = rarityLabel(c.rarity);
+      const price = cardPriceBase(c);
+      const sk    = c.key.replace(/[^a-z0-9]/gi, '_');
+      return `
+        <tr>
+          <td><img class="sr-img" src="${c.img}" onerror="this.style.opacity='.2'" alt=""></td>
+          <td><div class="sr-name">${c.name}</div>${c.code?`<div class="sr-code">${c.code}</div>`:''}</td>
+          <td><div class="sr-set">${c.setName}</div></td>
+          <td>${rl?`<span class="rarity-pip pip-${rk}">${rl}</span>`:''}</td>
+          <td class="sr-price">${price>0?fmtUSD(price):'-'}</td>
+          <td>${total>0?'<span class="badge-owned">Tengo</span>':'<span class="badge-missing">Falta</span>'}</td>
+          <td>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div class="qty-row" style="gap:3px">
+                <span style="font-size:9px;font-weight:700;color:var(--gold-dark);background:var(--gold-light);padding:1px 4px;border-radius:3px">1st</span>
+                <button class="qty-btn" style="width:20px;height:20px;font-size:12px" data-key="${c.key}" data-ed="ed1" data-d="-1" onclick="changeEdQtySearch(this)">−</button>
+                <div class="qty-num" style="font-size:11px" id="sqe1-${sk}">${ed1}</div>
+                <button class="qty-btn" style="width:20px;height:20px;font-size:12px" data-key="${c.key}" data-ed="ed1" data-d="1"  onclick="changeEdQtySearch(this)">+</button>
+              </div>
+              <div class="qty-row" style="gap:3px">
+                <span style="font-size:9px;font-weight:600;color:var(--faint);background:var(--bg);padding:1px 4px;border-radius:3px;border:1px solid var(--border)">Unl</span>
+                <button class="qty-btn" style="width:20px;height:20px;font-size:12px" data-key="${c.key}" data-ed="unl" data-d="-1" onclick="changeEdQtySearch(this)">−</button>
+                <div class="qty-num" style="font-size:11px" id="sqeu-${sk}">${unl}</div>
+                <button class="qty-btn" style="width:20px;height:20px;font-size:12px" data-key="${c.key}" data-ed="unl" data-d="1"  onclick="changeEdQtySearch(this)">+</button>
+              </div>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    res.innerHTML = `
+      <div class="search-table">
+        <table>
+          <thead><tr><th></th><th>Carta</th><th>Set</th><th>Rareza</th><th>Precio</th><th>Estado</th><th>Cant.</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      ${results.length>80?`<div style="padding:10px 0;font-size:12px;color:var(--faint)">${results.length} resultados — mostrando los primeros 80.</div>`:''}`;
+  }, 350);
+}
+
+function changeEdQtySearch(btn) {
+  const key   = btn.dataset.key;
+  const ed    = btn.dataset.ed;
+  const delta = parseInt(btn.dataset.d, 10);
+  const newE  = ed === 'ed1' ? Math.max(0, getQtyEd1(key) + delta) : getQtyEd1(key);
+  const newU  = ed === 'unl' ? Math.max(0, getQtyUnl(key) + delta) : getQtyUnl(key);
+  setQty(key, newE, newU);
+  save();
+  const sk    = key.replace(/[^a-z0-9]/gi, '_');
+  const e1el  = document.getElementById(`sqe1-${sk}`);
+  const euel  = document.getElementById(`sqeu-${sk}`);
+  if (e1el) e1el.textContent = newE;
+  if (euel) euel.textContent = newU;
+  const total = newE + newU;
+  const row   = btn.closest('tr');
+  if (row) {
+    const badge = row.querySelector('.badge-owned, .badge-missing');
+    if (badge) { badge.className = total>0?'badge-owned':'badge-missing'; badge.textContent = total>0?'Tengo':'Falta'; }
+  }
+}
+
+/* ══ ELIMINAR SET ══ */
+function askDelete(code)  { pendingDel = code; document.getElementById('confirm-dlg').style.display = 'flex'; }
+function cancelDelete()   { pendingDel = null; document.getElementById('confirm-dlg').style.display = 'none'; }
+function confirmDelete() {
+  if (!pendingDel) return;
+  const code = pendingDel;
+  sets = sets.filter(s => s.code !== code);
+  Object.keys(inventory).filter(k => k.startsWith(code + '-')).forEach(k => delete inventory[k]);
+  delete cardCache[code];
+  save();
+  pendingDel = null;
+  document.getElementById('confirm-dlg').style.display = 'none';
+  renderSetsView();
+  renderDashboard();
+}
+
+/* ══ MODAL AGREGAR SET ══ */
+function openAddModal() {
+  document.getElementById('add-modal').style.display = 'flex';
+  document.getElementById('modal-search-input').value = '';
+  document.getElementById('modal-list').innerHTML = '<div class="modal-sm">Escribe para buscar...</div>';
+  setTimeout(() => document.getElementById('modal-search-input').focus(), 150);
+}
+function closeAddModal() { document.getElementById('add-modal').style.display = 'none'; }
+function handleOverlayClick(e) { if (e.target === document.getElementById('add-modal')) closeAddModal(); }
+
+async function loadAllApiSets() {
+  if (allApiSets) return;
+  try {
+    const r = await fetch('https://db.ygoprodeck.com/api/v7/cardsets.php');
+    allApiSets = await r.json();
+  } catch(e) { allApiSets = []; }
+}
+
+function searchSetsModal(q) {
+  clearTimeout(searchTimer);
+  const list = document.getElementById('modal-list');
+  if (!q.trim()) { list.innerHTML = '<div class="modal-sm">Escribe para buscar...</div>'; return; }
+  list.innerHTML = '<div class="modal-sm">Buscando...</div>';
+  searchTimer = setTimeout(async () => {
+    await loadAllApiSets();
+    const ql    = q.toLowerCase();
+    const found = (allApiSets||[]).filter(s => s.set_name.toLowerCase().includes(ql)).slice(0, 40);
+    if (!found.length) { list.innerHTML = '<div class="modal-sm">Sin resultados.</div>'; return; }
+    const existing = new Set(sets.map(s => s.code));
+    list.innerHTML = found.map(s => {
+      const has = existing.has(s.set_code);
+      return `
+        <div class="modal-item${has?' added':''}"
+             data-code="${s.set_code}"
+             data-name="${s.set_name.replace(/"/g,'&quot;')}"
+             onclick="handleAddSet(this)">
+          <img src="${SET_IMG}${encodeURIComponent(s.set_code)}.jpg" onerror="this.style.opacity='.2'" alt="">
+          <div>
+            <div class="modal-item-name">${s.set_name}${has?' <span style="color:var(--faint);font-size:11px">(ya agregado)</span>':''}</div>
+            <div class="modal-item-meta">${s.set_code} · ${s.num_of_cards||'?'} cartas</div>
+          </div>
+        </div>`;
+    }).join('');
+  }, 400);
+}
+
+// FIX #11 — validar que code y name existan antes de hacer push
+function handleAddSet(el) {
+  if (el.classList.contains('added')) return;
+  const code = el.dataset.code;
+  const name = el.dataset.name;
+  if (!code || !name) return;
+  if (sets.find(s => s.code === code)) return;
+  sets.push({ name, code });
+  save();
+  closeAddModal();
+  // FIX #9 — limpiar buscador al agregar
+  document.getElementById('sets-search').value = '';
+  renderSetsView();
+  renderDashboard();
+}
+
+/* ══ FIX #5 — CARD_IMG_BASE eliminada (era variable muerta) ══ */
+
+/* ══ INIT ══ */
+renderDashboard();
+</script>
+</body>
+</html>

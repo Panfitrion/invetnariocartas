@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ── TOKENS ── */
 :root {
   --bg:        #F7F6F3;
   --surface:   #FFFFFF;
@@ -31,8 +30,6 @@
   --shadow:    0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
   --shadow-md: 0 4px 12px rgba(0,0,0,.08);
 }
-
-/* FIX #12 — font-family debe estar en * o body, no en :root */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: 'DM Sans', system-ui, sans-serif; }
 html, body { height: 100%; background: var(--bg); color: var(--text); }
 button { cursor: pointer; }
@@ -133,7 +130,6 @@ img    { display: block; }
 .section-link  { font-size: 12px; color: var(--gold-dark); text-transform: none; letter-spacing: 0; cursor: pointer; font-weight: 500; }
 .dash-two  { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .dash-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); }
-/* Rarity bars */
 .rarity-rows { display: flex; flex-direction: column; gap: 14px; }
 .rarity-row  { display: flex; align-items: center; gap: 12px; }
 .rarity-lbl  { width: 36px; font-size: 11px; font-weight: 600; font-family: 'DM Mono', monospace; }
@@ -145,7 +141,6 @@ img    { display: block; }
 .bar-SR  { background: #F59E0B; }
 .bar-UR  { background: #EF4444; }
 .bar-ScR { background: #8B5CF6; }
-/* Top rows */
 .top-rows   { display: flex; flex-direction: column; gap: 8px; }
 .top-row    { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); }
 .trow-img   { width: 34px; height: 34px; object-fit: contain; border-radius: 4px; background: #0f0e17; flex-shrink: 0; }
@@ -166,100 +161,50 @@ img    { display: block; }
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 18px; padding: 20px 28px 40px;
 }
-
-/* Card — perspectiva 3D para tilt interactivo */
-.set-card-wrap {
-  perspective: 800px;
-}
+.set-card-wrap { perspective: 800px; }
 .set-card {
-  background: var(--surface);
-  border-radius: 16px;
-  overflow: hidden;
-  cursor: pointer;
-  position: relative;
-  box-shadow: 0 2px 8px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
-  transition: box-shadow .25s, transform .25s;
-  transform-style: preserve-3d;
-  will-change: transform;
-  border: 1px solid var(--border);
+  background: var(--surface); border-radius: 16px; overflow: hidden; cursor: pointer;
+  position: relative; box-shadow: 0 2px 8px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  transition: box-shadow .25s, transform .25s; transform-style: preserve-3d;
+  will-change: transform; border: 1px solid var(--border);
 }
 .set-card:active { transform: scale(.97); }
-
-/* Imagen — ocupa casi toda la card, sin fondo negro */
-.set-img-box {
-  width: 100%;
-  padding-top: 75%;
-  position: relative;
-  overflow: hidden;
-  background: #f2efe8;
-}
+.set-img-box { width: 100%; padding-top: 75%; position: relative; overflow: hidden; background: #f2efe8; }
 .set-img-box img {
-  position: absolute;
-  inset: 0; width: 100%; height: 100%;
-  object-fit: contain;
-  object-position: center center;
-  padding: 6px;
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: contain; object-position: center center; padding: 4px;
   transition: transform .35s cubic-bezier(.2,0,.2,1);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 .set-card:hover .set-img-box img { transform: scale(1.06); }
-
-/* Fallback cuando no carga imagen — gradiente cálido con nombre */
 .set-img-fb {
-  position: absolute; inset: 0;
-  display: none;
-  flex-direction: column;
+  position: absolute; inset: 0; display: none; flex-direction: column;
   align-items: center; justify-content: center;
-  background: linear-gradient(145deg, #ede9df 0%, #ddd6c8 100%);
-  padding: 16px;
-  gap: 8px;
+  background: linear-gradient(145deg, #ede9df 0%, #ddd6c8 100%); padding: 16px; gap: 8px;
 }
 .set-img-fb-code {
-  font-family: 'DM Mono', monospace;
-  font-size: 11px; font-weight: 500;
-  color: var(--gold-dark);
-  letter-spacing: 1px;
-  background: rgba(201,168,76,.15);
-  padding: 3px 10px; border-radius: 20px;
+  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--gold-dark);
+  letter-spacing: 1px; background: rgba(201,168,76,.15); padding: 3px 10px; border-radius: 20px;
 }
-.set-img-fb-name {
-  font-size: 13px; font-weight: 600;
-  color: var(--text); text-align: center;
-  line-height: 1.35;
-}
-
-/* Overlay de progreso encima de la imagen */
+.set-img-fb-name { font-size: 13px; font-weight: 600; color: var(--text); text-align: center; line-height: 1.35; }
 .set-img-overlay {
   position: absolute; bottom: 0; left: 0; right: 0;
   background: linear-gradient(to top, rgba(0,0,0,.55) 0%, transparent 100%);
-  padding: 20px 12px 10px;
-  display: flex; align-items: flex-end; justify-content: space-between;
-  opacity: 0;
-  transition: opacity .25s;
+  padding: 20px 12px 10px; display: flex; align-items: flex-end; justify-content: space-between;
+  opacity: 0; transition: opacity .25s;
 }
 .set-card:hover .set-img-overlay { opacity: 1; }
-.set-ov-pct {
-  font-size: 20px; font-weight: 600; color: #fff;
-  font-family: 'DM Mono', monospace; line-height: 1;
-}
+.set-ov-pct { font-size: 20px; font-weight: 600; color: #fff; font-family: 'DM Mono', monospace; line-height: 1; }
 .set-ov-label { font-size: 10px; color: rgba(255,255,255,.75); margin-top: 2px; }
-.set-ov-val {
-  font-size: 13px; font-weight: 600;
-  color: #fff; font-family: 'DM Mono', monospace;
-  background: rgba(201,168,76,.8);
-  padding: 3px 8px; border-radius: 8px;
-}
-
-/* Info debajo de la imagen */
+.set-ov-val { font-size: 13px; font-weight: 600; color: #fff; font-family: 'DM Mono', monospace; background: rgba(201,168,76,.8); padding: 3px 8px; border-radius: 8px; }
 .set-card-body { padding: 11px 14px 13px; }
 .set-card-name { font-size: 12px; font-weight: 600; line-height: 1.35; margin-bottom: 5px; color: var(--text); }
-.set-card-code { font-size: 10px; color: var(--faint); font-family: 'DM Mono', monospace; margin-bottom: 8px; }
 .set-pbar-bg   { height: 3px; background: var(--bg); border-radius: 2px; overflow: hidden; margin-bottom: 5px; }
 .set-pbar-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width .4s; }
 .set-card-meta { display: flex; justify-content: space-between; align-items: center; }
 .set-card-prog { font-size: 11px; color: var(--muted); }
 .set-card-val  { font-size: 11px; font-weight: 600; color: var(--green); font-family: 'DM Mono', monospace; }
-
-/* Botón eliminar */
 .del-dot {
   position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border-radius: 50%;
   background: #EF4444; color: #fff; border: none; font-size: 15px; font-weight: 700;
@@ -303,9 +248,8 @@ img    { display: block; }
 .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; padding: 20px 28px 40px; }
 .card-tile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: border-color .15s; }
 .card-tile.owned { border-color: var(--gold); }
-/* FIX #6 — position:relative solo en CSS, no duplicar como inline style */
-.card-img-box { width: 100%; background: #0f0e17; position: relative; padding-top: 150%; overflow: hidden; }
-.card-img-box img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.card-img-box { width: 100%; background: #0f0e17; position: relative; padding-top: 145%; overflow: hidden; }
+.card-img-box img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .card-img-fb { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--gold); padding: 8px; text-align: center; line-height: 1.3; }
 .card-tile-body  { padding: 8px 10px 10px; }
 .card-tile-name  { font-size: 10px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
@@ -319,21 +263,28 @@ img    { display: block; }
 .pip-UR  { background: #FEE2E2; color: #991B1B; }
 .pip-ScR { background: #EDE9FE; color: #5B21B6; }
 .pip-other { background: #f0f0f0; color: #555; }
-.qty-row { display: flex; align-items: center; gap: 6px; }
+.qty-row { display: flex; align-items: center; justify-content: space-between; gap: 0; margin-top: 2px; }
 .qty-btn {
-  width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border2);
-  background: var(--bg); font-size: 16px; display: flex; align-items: center; justify-content: center;
-  color: var(--text); -webkit-tap-highlight-color: transparent;
+  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border2);
+  background: var(--bg); font-size: 20px; font-weight: 300; display: flex; align-items: center; justify-content: center;
+  color: var(--text); -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+  transition: background .1s;
 }
 .qty-btn:active { background: var(--border); }
-.qty-num  { font-size: 13px; font-weight: 600; min-width: 16px; text-align: center; font-family: 'DM Mono', monospace; }
+.qty-btn.minus:active { background: #fee2e2; }
+.qty-btn.plus:active  { background: #dcfce7; }
+.qty-num {
+  font-size: 15px; font-weight: 600; min-width: 32px; text-align: center;
+  font-family: 'DM Mono', monospace; cursor: pointer; padding: 4px 2px;
+  border-radius: 4px; color: var(--text);
+}
+.qty-num:active { background: var(--gold-light); }
 .owned-check { position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; z-index: 2; }
+.qty-input { width: 60px; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border2); background: var(--bg); color: var(--text); text-align: center; font-size: 12px; font-family: 'DM Mono', monospace; }
 
 /* Ed1/Unl controls */
 .ed-section { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
-.ed-row {
-  display: flex; align-items: center; gap: 4px;
-}
+.ed-row { display: flex; align-items: center; gap: 4px; }
 .ed-label {
   font-size: 9px; font-weight: 700; width: 28px; flex-shrink: 0;
   padding: 2px 4px; border-radius: 4px; text-align: center;
@@ -349,6 +300,16 @@ img    { display: block; }
 .ed-qty-btn:active { background: var(--border); }
 .ed-qty-num { font-size: 11px; font-weight: 600; min-width: 14px; text-align: center; font-family: 'DM Mono', monospace; }
 .ed-price { font-size: 9px; color: var(--green); font-family: 'DM Mono', monospace; margin-left: auto; }
+
+/* Rarity buttons */
+.rarity-buttons { display: flex; gap: 2px; margin-bottom: 6px; justify-content: center; }
+.rarity-btn {
+  width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border2);
+  background: var(--bg); font-size: 9px; font-weight: 600; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background .12s, color .12s;
+}
+.rarity-btn:hover { background: var(--border); }
+.rarity-btn.active { background: var(--gold); color: #fff; border-color: var(--gold); }
 
 /* ── SEARCH VIEW ── */
 .search-scroll { flex: 1; overflow-y: auto; }
@@ -398,8 +359,14 @@ img    { display: block; }
 .confirm-box p  { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
 .confirm-btns   { display: flex; gap: 8px; }
 .confirm-btns button { flex: 1; padding: 11px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; border: none; }
+.cb-cancel { background: var(--bg); color: var(--text); }
+.cb-delete { background: #EF4444; color: #fff; }
 
-/* ── TABLET FRIENDLY ── */
+/* ── STATE ── */
+.state-msg { padding: 48px; text-align: center; color: var(--faint); font-size: 14px; grid-column: 1/-1; line-height: 1.6; }
+.state-msg button { margin-top: 16px; }
+
+/* ── TABLET ── */
 @media(min-width:768px) and (max-width:1024px){
   .cards-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; padding: 24px 32px 40px; }
   .card-tile-name { font-size: 12px; }
@@ -411,22 +378,6 @@ img    { display: block; }
   .detail-toolbar { padding: 12px 32px; }
   .detail-header { padding: 18px 32px; }
 }
-
-/* ── RARITY BUTTONS ── */
-.rarity-buttons { display: flex; gap: 2px; margin-bottom: 6px; justify-content: center; }
-.rarity-btn {
-  width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border2);
-  background: var(--bg); font-size: 9px; font-weight: 600; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: background .12s, color .12s;
-}
-.rarity-btn:hover { background: var(--border); }
-.rarity-btn.active { background: var(--gold); color: #fff; border-color: var(--gold); }
-.qty-input { width: 60px; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border2); background: var(--bg); color: var(--text); text-align: center; font-size: 12px; font-family: 'DM Mono', monospace; }
-.cb-cancel { background: var(--bg); color: var(--text); }
-.cb-delete { background: #EF4444; color: #fff; }
-
-/* ── STATE ── */
-.state-msg { padding: 48px; text-align: center; color: var(--faint); font-size: 14px; grid-column: 1/-1; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
@@ -446,9 +397,6 @@ img    { display: block; }
   .detail-stats-row { display: none; }
   .search-hero    { padding: 20px 16px 14px; }
   .search-results { padding: 0 16px 40px; }
-}
-/* FIX #1 — media anidado eliminado; overlay se maneja aquí */
-@media (max-width: 768px) {
   .overlay { align-items: flex-end; padding: 0; }
   .modal-sheet { border-radius: 20px 20px 0 0; max-height: 80vh; }
 }
@@ -624,55 +572,55 @@ img    { display: block; }
 </div>
 
 <script>
-/* ══ DATOS ══ */
-const DEFAULT_SETS = [
-  { name:"Maze of Millennia",                        code:"MZMI" },
-  { name:"Valiant Smashers",                         code:"VASM" },
-  { name:"25th Anniversary Rarity Collection",       code:"RA01" },
-  { name:"Age of Overlord",                          code:"AGOV" },
-  { name:"Legendary Duelists: Soulburning Volcano",  code:"LED9" },
-  { name:"Duelist Nexus",                            code:"DUNE" },
-  { name:"Battles of Legend: Monstrous Revenge",     code:"BLMR" },
-  { name:"Wild Survivors",                           code:"WISU" },
-  { name:"Cyberstorm Access",                        code:"CYAC" },
-  { name:"Invasion of Chaos",                        code:"IOC"  },
-  { name:"Pharaoh's Servant",                        code:"PSV"  },
-  { name:"Spell Ruler",                              code:"SRL"  },
-  { name:"Metal Raiders",                            code:"MRD"  },
-  { name:"Legend of Blue Eyes White Dragon",         code:"LOB"  },
-  { name:"Maze of Memories",                         code:"MAZE" },
-  { name:"Photon Hypernova",                         code:"PHHY" },
-  { name:"Amazing Defenders",                        code:"AMDE" },
-  { name:"Battles of Legend: Crystal Revenge",       code:"BLCR" },
-  { name:"Darkwing Blast",                           code:"DABL" },
-  { name:"Power of the Elements",                    code:"POTE" },
-  { name:"Tactical Masters",                         code:"TAMA" },
-  { name:"Legendary Duelists: Duels From the Deep",  code:"LED8" },
-  { name:"Dimension Force",                          code:"DIFO" },
-  { name:"Battle of Chaos",                          code:"BACH" },
-  { name:"The Grand Creators",                       code:"GRCR" },
-  { name:"Brothers of Legend",                       code:"BROL" },
-  { name:"Burst of Destiny",                         code:"BODE" },
-  { name:"Legendary Duelists: Synchro Storm",        code:"LED7" },
-  { name:"Dawn of Majesty",                          code:"DAMA" },
-  { name:"King's Court",                             code:"KICO" },
-  { name:"Lightning Overdrive",                      code:"LIOV" },
-  { name:"Ancient Guardians",                        code:"ANGU" },
-  { name:"Blazing Vortex",                           code:"BLVO" },
-  { name:"Genesis Impact",                           code:"GEIM" }
-];
+/* ══ DATOS PREDETERMINADOS ══ */
+const DEFAULT_SETS = [];
 
-const SET_IMG = "https://images.ygoprodeck.com/images/sets/";
+const SET_IMG      = "https://images.ygoprodeck.com/images/sets/";
+const API_BASE     = "https://db.ygoprodeck.com/api/v7/";
+// Proxy CORS — resuelve bloqueos de Safari desde file:// y GitHub Pages
+const PROXY        = "https://api.allorigins.win/raw?url=";
+
+/* ══ HELPERS CORS ══
+   Intenta primero directo; si falla por CORS/red, reintenta con proxy.
+   Esto cubre Safari (file://, GitHub Pages) y Chrome por igual. */
+async function apiFetch(url) {
+  // Intento 1: directo (funciona en Chrome y servidores con CORS correcto)
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (r.ok) return r.json();
+    // 429 rate-limit o 5xx — no tiene sentido reintentar directo
+    if (r.status === 429 || r.status >= 500) throw new Error(`HTTP ${r.status}`);
+  } catch(e) {
+    // Si es timeout explícito, burbujear — no intentar proxy para timeouts
+    if (e.name === 'TimeoutError') throw e;
+    // Para errores de red/CORS, caer al proxy
+  }
+
+  // Intento 2: vía proxy CORS (Safari/iPad/GitHub Pages)
+  const proxyUrl = PROXY + encodeURIComponent(url);
+  const r2 = await fetch(proxyUrl, { signal: AbortSignal.timeout(15000) });
+  if (!r2.ok) throw new Error(`Proxy HTTP ${r2.status}`);
+  return r2.json();
+}
+
+/* ══ STORAGE SEGURO (Safari modo privado lanza excepción) ══ */
+function safeGet(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key) || 'null') || fallback; }
+  catch { return fallback; }
+}
+function safeSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+}
 
 /* ══ ESTADO ══ */
-let sets      = JSON.parse(localStorage.getItem('ygo_sets')      || 'null') || JSON.parse(JSON.stringify(DEFAULT_SETS));
-let inventory = JSON.parse(localStorage.getItem('ygo_inventory') || '{}');
-let selectedRarities = JSON.parse(localStorage.getItem('ygo_selected_rarities') || '{}');
-let cardQtys = JSON.parse(localStorage.getItem('ygo_card_qtys') || '{}');
-let cardCache = JSON.parse(localStorage.getItem('ygo_card_cache')|| '{}');
+let sets         = safeGet('ygo_sets',     JSON.parse(JSON.stringify(DEFAULT_SETS)));
+let inventory    = safeGet('ygo_inventory', {});
+let selectedRarities = safeGet('ygo_selected_rarities', {});
+let cardQtys     = safeGet('ygo_card_qtys', {});
+let cardCache    = safeGet('ygo_card_cache', {});
 
 let editMode       = false;
-let currentView    = 'dashboard';   // FIX #3 — nunca puede ser 'detail'
+let currentView    = 'dashboard';
 let prevView       = 'sets';
 let currentSetCode = null;
 let currentCards   = [];
@@ -685,19 +633,30 @@ let globalTimer    = null;
 
 /* ══ PERSISTENCIA ══ */
 function save() {
-  localStorage.setItem('ygo_sets',       JSON.stringify(sets));
-  localStorage.setItem('ygo_inventory',  JSON.stringify(inventory));
-  localStorage.setItem('ygo_selected_rarities', JSON.stringify(selectedRarities));
-  localStorage.setItem('ygo_card_qtys', JSON.stringify(cardQtys));
-  localStorage.setItem('ygo_card_cache', JSON.stringify(cardCache));
+  safeSet('ygo_sets',              sets);
+  safeSet('ygo_inventory',         inventory);
+  safeSet('ygo_selected_rarities', selectedRarities);
+  safeSet('ygo_card_qtys',         cardQtys);
+  safeSet('ygo_card_cache',        cardCache);
 }
 
 /* ══ IMAGEN HELPERS ══ */
-function setImgUrls(code) {
-  return [SET_IMG + code + ".jpg", SET_IMG + code + "-EN.jpg"];
-}
+// Algunos sets tienen códigos alternativos en el servidor de imágenes
+const SET_CODE_ALIASES = {
+  'SRL': ['SRL', 'MRL'],  // Spell Ruler / Magic Ruler
+  'IOC': ['IOC'],
+  'PSV': ['PSV'],
+};
 
-// FIX #8 — fbEl puede ser null sin que crashee
+function setImgUrls(code) {
+  const aliases = SET_CODE_ALIASES[code] || [code];
+  const urls = [];
+  aliases.forEach(c => {
+    urls.push(SET_IMG + c + ".jpg");
+    urls.push(SET_IMG + c + "-EN.jpg");
+  });
+  return urls;
+}
 function tryImg(imgEl, urls, fbEl) {
   if (!urls.length) {
     imgEl.style.display = 'none';
@@ -728,21 +687,19 @@ function rarityLabel(r) {
 
 /* ══ PRECIOS ══ */
 const ED1_MULTIPLIER = 1.8;
-
 function cardPriceBase(card) {
   const p = card.card_prices && card.card_prices[0];
   if (!p) return 0;
   return parseFloat(p.tcgplayer_price || p.cardmarket_price || 0) || 0;
 }
 function cardPriceEd1(card) { return cardPriceBase(card) * ED1_MULTIPLIER; }
-function cardPrice(card)    { return cardPriceBase(card); }
 function fmtUSD(n) { return '$' + n.toFixed(2); }
 
-/* Helpers qty ed1/unl — migra automáticamente valores viejos (número plano) */
+/* ══ QTY HELPERS (Ed1 / Unlimited) ══ */
 function getQtyUnl(key) {
   const v = inventory[key];
   if (!v) return 0;
-  if (typeof v === 'number') return v; // migración: valor viejo = Unl
+  if (typeof v === 'number') return v;
   return v.unl || 0;
 }
 function getQtyEd1(key) {
@@ -755,26 +712,16 @@ function setQty(key, ed1, unl) {
   if (ed1 === 0 && unl === 0) { delete inventory[key]; }
   else inventory[key] = { ed1, unl };
 }
-function cardValueForKey(card) {
-  return card.qty * cardPriceBase(card);
-}
+function cardValueForKey(card) { return card.qty * cardPriceBase(card); }
 
-/* ══ NAVEGACIÓN ══
-   FIX #2  — 'detail' no tiene botones de nav, así que su lógica
-              de active se salta limpiamente.
-   FIX #4  — el guard solo bloquea si realmente es la misma vista
-              Y no venimos de detalle (que necesita re-render). */
+/* ══ NAVEGACIÓN ══ */
 const VIEW_TITLES = { dashboard:'Dashboard', sets:'Sets', search:'Búsqueda', detail:'' };
 
 function navTo(viewId) {
-  // Solo bloquear si es exactamente la misma vista activa
   if (viewId === currentView) return;
-
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const el = document.getElementById('view-' + viewId);
   if (el) el.classList.add('active');
-
-  // Actualizar nav activo solo para vistas con botones de nav
   if (viewId !== 'detail') {
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.bar-item').forEach(b => b.classList.remove('active'));
@@ -784,16 +731,12 @@ function navTo(viewId) {
     if (bBtn) bBtn.classList.add('active');
     document.getElementById('mobile-title').textContent = VIEW_TITLES[viewId] || '';
   }
-
-  // Siempre actualizar currentView, incluyendo 'detail'
   currentView = viewId;
-
   if (viewId === 'dashboard') renderDashboard();
   if (viewId === 'sets')      { document.getElementById('sets-search').value = ''; renderSetsView(); }
 }
 
 function openDetail(code) {
-  // FIX #3 — prevView solo se actualiza si no es 'detail'
   if (currentView !== 'detail') prevView = currentView;
   navTo('detail');
   document.getElementById('mobile-title').textContent = '';
@@ -801,7 +744,6 @@ function openDetail(code) {
 }
 
 function backFromDetail() {
-  // FIX #3 — garantizar que prevView nunca es 'detail'
   const target = (prevView && prevView !== 'detail') ? prevView : 'sets';
   navTo(target);
 }
@@ -818,40 +760,33 @@ function calcStats() {
   let totalCards = 0, totalOwned = 0, totalValue = 0;
   const rarityCounts = { C:0, R:0, SR:0, UR:0, ScR:0 };
   const setValues = [];
-
   sets.forEach(s => {
     const cached = cardCache[s.code] || [];
     let setOwned = 0, setValue = 0;
     cached.forEach(card => {
-      const total = getTotalQty(card.key);
-      const val   = cardValueForKey(card);
+      const qty = cardQtys[card.id] || 0;
+      const val = qty * cardPriceBase(card);
       totalCards++;
-      if (total > 0) {
-        totalOwned++;
-        setOwned++;
-        setValue   += val;
-        totalValue += val;
+      if (qty > 0) {
+        totalOwned++; setOwned++; setValue += val; totalValue += val;
         const rk = rarityKey(card.rarity);
         if (rk in rarityCounts) rarityCounts[rk]++;
       }
     });
     setValues.push({ s, owned: setOwned, total: cached.length, value: setValue });
   });
-
   return { totalCards, totalOwned, totalValue, rarityCounts, setValues };
 }
 
 function renderDashboard() {
   document.getElementById('dash-date').textContent =
     new Date().toLocaleDateString('es-MX', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-
   const { totalCards, totalOwned, totalValue, rarityCounts, setValues } = calcStats();
   const pct = totalCards > 0 ? Math.round(totalOwned / totalCards * 100) : 0;
   const completeSets = sets.filter(s => {
     const c = cardCache[s.code];
-    return c && c.length > 0 && c.every(card => getTotalQty(card.key) > 0);
+    return c && c.length > 0 && c.every(card => (cardQtys[card.id] || 0) > 0);
   }).length;
-
   document.getElementById('stat-row').innerHTML = `
     <div class="stat-card accent-gold">
       <div class="sc-label">Cartas en colección</div>
@@ -873,13 +808,9 @@ function renderDashboard() {
       <div class="sc-value">${(totalCards - totalOwned).toLocaleString()}</div>
       <div class="sc-sub">Para completar todos los sets</div>
     </div>`;
-
   const rarityMeta = [
-    { key:'C',   color:'#A8A29E' },
-    { key:'R',   color:'#3B82F6' },
-    { key:'SR',  color:'#F59E0B' },
-    { key:'UR',  color:'#EF4444' },
-    { key:'ScR', color:'#8B5CF6' },
+    { key:'C', color:'#A8A29E' }, { key:'R', color:'#3B82F6' },
+    { key:'SR', color:'#F59E0B' }, { key:'UR', color:'#EF4444' }, { key:'ScR', color:'#8B5CF6' },
   ];
   const maxR = Math.max(...Object.values(rarityCounts), 1);
   document.getElementById('rarity-rows').innerHTML = rarityMeta.map(r => `
@@ -888,34 +819,27 @@ function renderDashboard() {
       <div class="rarity-bg"><div class="rarity-fill bar-${r.key}" style="width:${Math.round(rarityCounts[r.key]/maxR*100)}%"></div></div>
       <div class="rarity-ct">${rarityCounts[r.key]}</div>
     </div>`).join('');
-
   const sorted = [...setValues].filter(x => x.total > 0)
     .sort((a,b) => (b.owned/b.total) - (a.owned/a.total)).slice(0,5);
-
   document.getElementById('top-sets').innerHTML = sorted.length
     ? sorted.map(x => {
         const p = Math.round(x.owned / x.total * 100);
-        return `
-          <div class="top-row">
-            <img class="trow-img" id="tsimg-${x.s.code}" alt="${x.s.name}" onerror="this.style.opacity='.3'">
-            <div class="trow-info">
-              <div class="trow-name">${x.s.name}</div>
-              <div class="trow-sub">${x.owned}/${x.total} cartas</div>
-              <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${p}%"></div></div>
-            </div>
-            <div class="trow-val">${p}%</div>
-          </div>`;
+        return `<div class="top-row">
+          <img class="trow-img" id="tsimg-${x.s.code}" alt="${x.s.name}" onerror="this.style.opacity='.3'">
+          <div class="trow-info">
+            <div class="trow-name">${x.s.name}</div>
+            <div class="trow-sub">${x.owned}/${x.total} cartas</div>
+            <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${p}%"></div></div>
+          </div>
+          <div class="trow-val">${p}%</div>
+        </div>`;
       }).join('')
     : '<div style="font-size:13px;color:var(--faint);padding:8px 0">Abre sets para ver progreso.</div>';
-
   sorted.forEach(x => {
     const img = document.getElementById(`tsimg-${x.s.code}`);
     if (img) img.src = SET_IMG + x.s.code + ".jpg";
   });
-
-  const byCost = [...setValues].filter(x => x.value > 0)
-    .sort((a,b) => b.value - a.value).slice(0,5);
-
+  const byCost = [...setValues].filter(x => x.value > 0).sort((a,b) => b.value - a.value).slice(0,5);
   document.getElementById('val-by-set').innerHTML = byCost.length
     ? byCost.map(x => `
         <div class="top-row">
@@ -932,10 +856,15 @@ function renderDashboard() {
 /* ══ SETS VIEW ══ */
 function getSetProgress(code) {
   const cached = cardCache[code] || [];
-  return { owned: cached.filter(c => getTotalQty(c.key) > 0).length, total: cached.length };
+  return {
+    owned: cached.filter(c => (cardQtys[c.id] || 0) > 0).length,
+    total: cached.length
+  };
 }
 function getSetValue(code) {
-  return (cardCache[code]||[]).reduce((s,c) => s + cardValueForKey(c), 0);
+  return (cardCache[code]||[]).reduce((s,c) => {
+    return s + ((cardQtys[c.id] || 0) * cardPriceBase(c));
+  }, 0);
 }
 
 function renderSetsView(list) {
@@ -943,7 +872,6 @@ function renderSetsView(list) {
   document.getElementById('sets-count-label').textContent = `${show.length} set${show.length!==1?'s':''}`;
   const grid = document.getElementById('sets-grid');
   if (!show.length) { grid.innerHTML = '<div class="state-msg">No hay sets. Agrega uno arriba.</div>'; return; }
-
   grid.innerHTML = show.map(s => {
     const p   = getSetProgress(s.code);
     const pct = p.total > 0 ? Math.round(p.owned/p.total*100) : 0;
@@ -977,40 +905,28 @@ function renderSetsView(list) {
         </div>
       </div>`;
   }).join('');
-
   if (editMode) grid.classList.add('edit-mode');
   else          grid.classList.remove('edit-mode');
-
   show.forEach(s => {
     const img = document.getElementById(`si-${s.code}`);
     const fb  = document.getElementById(`sifb-${s.code}`);
     if (img && fb) tryImg(img, setImgUrls(s.code), fb);
   });
-
-  // Tilt 3D interactivo por mouse/touch
   grid.querySelectorAll('.set-card').forEach(card => {
     card.addEventListener('mousemove', e => {
       if (editMode) return;
-      const r   = card.getBoundingClientRect();
-      const x   = e.clientX - r.left;
-      const y   = e.clientY - r.top;
-      const cx  = r.width  / 2;
-      const cy  = r.height / 2;
-      const rx  = ((y - cy) / cy) * -8;  // max ±8deg
-      const ry  = ((x - cx) / cx) *  8;
+      const r = card.getBoundingClientRect();
+      const rx = ((e.clientY - r.top  - r.height/2) / (r.height/2)) * -8;
+      const ry = ((e.clientX - r.left - r.width/2)  / (r.width/2))  *  8;
       card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale(1.02)`;
       card.style.boxShadow = `${-ry*.5}px ${rx*.5}px 20px rgba(0,0,0,.13)`;
     });
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = '';
-      card.style.boxShadow = '';
-    });
+    card.addEventListener('mouseleave', () => { card.style.transform = ''; card.style.boxShadow = ''; });
   });
 }
 
 function handleSetClick(e, code) { if (!editMode) openDetail(code); }
 
-// FIX #9 — filterSets NO limpia el input (eso lo hace navTo al entrar a sets)
 function filterSets(q) {
   if (!q) { renderSetsView(); return; }
   renderSetsView(sets.filter(s =>
@@ -1019,7 +935,9 @@ function filterSets(q) {
   ));
 }
 
-/* ══ DETAIL ══ */
+/* ══ DETAIL — CARGA DE CARTAS ══
+   Usa apiFetch() que intenta directo y cae a proxy CORS si falla.
+   Esto resuelve el bloqueo en Safari/iPad desde file:// y GitHub Pages. */
 async function loadSetDetail(code) {
   currentSetCode = code;
   cardFilter = 'all';
@@ -1035,13 +953,11 @@ async function loadSetDetail(code) {
   document.getElementById('pill-owned').classList.remove('active');
   document.getElementById('pill-missing').classList.remove('active');
 
-  // FIX #8 — fbEl es null aquí, tryImg lo maneja sin crash
   const dimg = document.getElementById('detail-set-img');
   dimg.src = '';
   tryImg(dimg, setImgUrls(code), null);
 
-  document.getElementById('cards-grid').innerHTML = '<div class="state-msg">Cargando cartas...</div>';
-
+  // Si ya está en cache, mostrar inmediatamente sin llamar a la API
   if (cardCache[code] && cardCache[code].length > 0) {
     currentCards = cardCache[code];
     currentCards.forEach(c => {
@@ -1053,47 +969,38 @@ async function loadSetDetail(code) {
     return;
   }
 
+  document.getElementById('cards-grid').innerHTML =
+    '<div class="state-msg">Cargando cartas...</div>';
+
   try {
-    const r    = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?cardset=${encodeURIComponent(setObj.name)}`);
-    const data = await r.json();
+    const apiUrl = `${API_BASE}cardinfo.php?cardset=${encodeURIComponent(setObj.name)}`;
+    const data   = await apiFetch(apiUrl);
+
     if (!data.data) {
-      document.getElementById('cards-grid').innerHTML = '<div class="state-msg">No se encontraron cartas.</div>';
+      document.getElementById('cards-grid').innerHTML =
+        '<div class="state-msg">No se encontraron cartas para este set.</div>';
       return;
     }
 
-    currentCards = [];
     const cardMap = new Map();
     data.data.forEach(card => {
-      const csets = (card.card_sets||[]).filter(s => s.set_code && s.set_code.toUpperCase().startsWith(code.toUpperCase()));
+      const csets = (card.card_sets||[]).filter(s =>
+        s.set_code && s.set_code.toUpperCase().startsWith(code.toUpperCase())
+      );
+      const entry = {
+        id:          card.id,
+        name:        card.name,
+        img:         card.card_images?.[0]?.image_url || '',
+        rarity:      '',
+        code:        '',
+        key:         card.id,
+        card_prices: card.card_prices
+      };
       if (csets.length) {
-        csets.forEach(cs => {
-          const key = card.id;
-          if (!cardMap.has(key)) {
-            cardMap.set(key, {
-              id:   card.id,
-              name: card.name,
-              img:  card.card_images?.[0]?.image_url_cropped || '',
-              code: cs.set_code,
-              rarity: cs.set_rarity || '',
-              key: card.id,
-              card_prices: card.card_prices
-            });
-          }
-        });
-      } else {
-        const key = card.id;
-        if (!cardMap.has(key)) {
-          cardMap.set(key, {
-            id:   card.id,
-            name: card.name,
-            img:  card.card_images?.[0]?.image_url_cropped || '',
-            code: '',
-            rarity: '',
-            key: card.id,
-            card_prices: card.card_prices
-          });
-        }
+        entry.code   = csets[0].set_code;
+        entry.rarity = csets[0].set_rarity || '';
       }
+      if (!cardMap.has(card.id)) cardMap.set(card.id, entry);
     });
 
     currentCards = Array.from(cardMap.values());
@@ -1101,20 +1008,27 @@ async function loadSetDetail(code) {
       c.selectedRarity = selectedRarities[c.id] || null;
       c.qty = cardQtys[c.id] || 0;
     });
-
     currentCards.sort((a,b) => a.code.localeCompare(b.code));
+
     cardCache[code] = currentCards;
     save();
     renderDetailStats();
     renderCards();
+
   } catch(e) {
-    document.getElementById('cards-grid').innerHTML = '<div class="state-msg">Error al cargar. Verifica tu conexión.</div>';
+    // Mostrar error con opción de reintentar
+    document.getElementById('cards-grid').innerHTML = `
+      <div class="state-msg">
+        No se pudo cargar el set.<br>
+        <span style="font-size:12px;color:var(--faint)">Verifica tu conexión a internet e intenta de nuevo.</span><br>
+        <button class="btn btn-gold" onclick="loadSetDetail('${code}')">Reintentar</button>
+      </div>`;
   }
 }
 
 function renderDetailStats() {
-  const owned  = currentCards.filter(c => c.qty > 0).length;
-  const value  = currentCards.reduce((s,c) => s + (c.qty * cardPriceBase(c)), 0);
+  const owned = currentCards.filter(c => (cardQtys[c.id] || 0) > 0).length;
+  const value = currentCards.reduce((s,c) => s + ((cardQtys[c.id] || 0) * cardPriceBase(c)), 0);
   document.getElementById('detail-stats').innerHTML = `
     <div class="ds"><div class="ds-val">${currentCards.length}</div><div class="ds-label">Total</div></div>
     <div class="ds"><div class="ds-val">${owned}</div><div class="ds-label">Tengo</div></div>
@@ -1122,23 +1036,33 @@ function renderDetailStats() {
     <div class="ds"><div class="ds-val" style="color:var(--green)">${fmtUSD(value)}</div><div class="ds-label">Valor</div></div>`;
 }
 
+function setPillFilter(f, btn) {
+  cardFilter = f;
+  document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards();
+  renderDetailStats();
+}
+function filterCards(q) { cardSearch = q.toLowerCase(); renderCards(); }
+
 /* ══ RENDER CARTAS ══ */
 function renderCards() {
   let list = [...currentCards];
+  // Sincronizar qty desde cardQtys (fuente de verdad)
+  list.forEach(c => { c.qty = cardQtys[c.id] || 0; });
+
   if (cardFilter === 'owned')   list = list.filter(c => c.qty > 0);
   if (cardFilter === 'missing') list = list.filter(c => c.qty === 0);
   if (cardSearch) list = list.filter(c =>
     c.name.toLowerCase().includes(cardSearch) ||
-    c.code.toLowerCase().includes(cardSearch)
+    (c.code||'').toLowerCase().includes(cardSearch)
   );
-
   const grid = document.getElementById('cards-grid');
   if (!list.length) { grid.innerHTML = '<div class="state-msg">Sin cartas con ese filtro.</div>'; return; }
-
   grid.innerHTML = list.map(c => {
-    const rk    = rarityKey(c.selectedRarity || c.rarity);
-    const rl    = rarityLabel(c.selectedRarity || c.rarity);
-    const sk    = c.key.replace(/[^a-z0-9]/gi, '_');
+    const rk = rarityKey(c.selectedRarity || c.rarity);
+    const rl = rarityLabel(c.selectedRarity || c.rarity);
+    const sk = String(c.key).replace(/[^a-z0-9]/gi, '_');
     return `
       <div class="card-tile${c.qty > 0 ?' owned':''}" id="ct-${sk}">
         <div class="card-img-box">
@@ -1162,7 +1086,9 @@ function renderCards() {
             <button class="rarity-btn${c.selectedRarity==='ScR'?' active':''}" onclick="setCardRarity('${c.id}', 'ScR')">ScR</button>
           </div>
           <div class="qty-row">
-            <input type="number" min="0" value="${c.qty}" onchange="updateQty('${c.id}', this.value)" class="qty-input">
+            <button class="qty-btn minus" ontouchstart="" onclick="stepQty('${c.id}', -1)">−</button>
+            <span class="qty-num" onclick="promptQty('${c.id}')" id="qn-${sk}">${c.qty}</span>
+            <button class="qty-btn plus"  ontouchstart="" onclick="stepQty('${c.id}', +1)">+</button>
           </div>
         </div>
       </div>`;
@@ -1179,54 +1105,59 @@ function setCardRarity(id, r) {
   }
 }
 
-function updateQty(id, qty) {
+function stepQty(id, delta) {
   const c = currentCards.find(x => x.id == id);
-  if (c) {
-    c.qty = parseInt(qty) || 0;
-    cardQtys[c.id] = c.qty;
-    renderCards();
-    save();
-  }
+  if (!c) return;
+  updateQty(id, (cardQtys[id] || 0) + delta);
 }
 
-function changeEdQty(btn) {
-  const key   = btn.dataset.key;
-  const ed    = btn.dataset.ed;      // 'ed1' o 'unl'
-  const delta = parseInt(btn.dataset.d, 10);
-  const cur1  = getQtyEd1(key);
-  const curU  = getQtyUnl(key);
-  const newE  = ed === 'ed1' ? Math.max(0, cur1 + delta) : cur1;
-  const newU  = ed === 'unl' ? Math.max(0, curU + delta) : curU;
-  setQty(key, newE, newU);
+function promptQty(id) {
+  const c = currentCards.find(x => x.id == id);
+  if (!c) return;
+  const current = cardQtys[id] || 0;
+  // prompt nativo — teclado numérico nativo en iOS, sin librería
+  const val = prompt(`Cantidad para:\n${c.name}`, current);
+  if (val === null) return; // canceló
+  updateQty(id, val);
+}
+
+function updateQty(id, qty) {
+  const newQty = Math.max(0, parseInt(qty) || 0);
+  const c = currentCards.find(x => x.id == id);
+  if (!c) return;
+
+  c.qty = newQty;
+  cardQtys[id] = newQty;
   save();
+
   renderDetailStats();
 
-  const sk    = key.replace(/[^a-z0-9]/gi, '_');
-  const tile  = document.getElementById(`ct-${sk}`);
-  const total = newE + newU;
+  const sk   = String(c.key).replace(/[^a-z0-9]/gi, '_');
+  const tile = document.getElementById(`ct-${sk}`);
   if (!tile) return;
 
-  tile.classList.toggle('owned', total > 0);
-  const chk = tile.querySelector('.owned-check');
-  if (total > 0 && !chk) {
-    const d = document.createElement('div');
-    d.className = 'owned-check'; d.textContent = '✓';
-    tile.querySelector('.card-img-box').prepend(d);
-  } else if (total === 0 && chk) { chk.remove(); }
+  // Actualizar número en el span
+  const numEl = document.getElementById(`qn-${sk}`);
+  if (numEl) numEl.textContent = newQty;
 
-  const e1el = document.getElementById(`e1-${sk}`);
-  const euel = document.getElementById(`eu-${sk}`);
-  if (e1el) e1el.textContent = newE;
-  if (euel) euel.textContent = newU;
-}
+  // Clase owned
+  tile.classList.toggle('owned', newQty > 0);
 
-function setPillFilter(f, btn) {
-  cardFilter = f;
-  document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderCards();
+  // Checkmark
+  const existingChk = tile.querySelector('.owned-check');
+  if (newQty > 0 && !existingChk) {
+    const chk = document.createElement('div');
+    chk.className = 'owned-check';
+    chk.textContent = '✓';
+    tile.querySelector('.card-img-box').prepend(chk);
+  } else if (newQty === 0 && existingChk) {
+    existingChk.remove();
+  }
+
+  // Ocultar si el filtro activo ya no aplica
+  if (cardFilter === 'owned'   && newQty === 0) tile.style.display = 'none';
+  if (cardFilter === 'missing' && newQty  >  0) tile.style.display = 'none';
 }
-function filterCards(q) { cardSearch = q.toLowerCase(); renderCards(); }
 
 /* ══ BÚSQUEDA GLOBAL ══ */
 function globalSearch(q) {
@@ -1242,7 +1173,7 @@ function globalSearch(q) {
     const results = [];
     sets.forEach(s => {
       (cardCache[s.code]||[]).forEach(c => {
-        if (c.name.toLowerCase().includes(ql) || c.code.toLowerCase().includes(ql))
+        if (c.name.toLowerCase().includes(ql) || (c.code||'').toLowerCase().includes(ql))
           results.push({ ...c, setName: s.name, setCode: s.code });
       });
     });
@@ -1251,7 +1182,7 @@ function globalSearch(q) {
       return;
     }
     const rows = results.slice(0, 80).map(c => {
-      const has = (cardQtys[c.id] || 0) > 0;
+      const has   = (cardQtys[c.id] || 0) > 0;
       const rk    = rarityKey(c.rarity);
       const rl    = rarityLabel(c.rarity);
       const price = cardPriceBase(c);
@@ -1263,10 +1194,9 @@ function globalSearch(q) {
           <td>${rl?`<span class="rarity-pip pip-${rk}">${rl}</span>`:''}</td>
           <td class="sr-price">${price>0?fmtUSD(price):'-'}</td>
           <td>${has?'<span class="badge-owned">Tengo</span>':'<span class="badge-missing">Falta</span>'}</td>
-          <td><input type="number" min="0" value="${cardQtys[c.id] || 0}" onchange="updateQty('${c.id}', this.value)" class="qty-input" style="width:50px;font-size:11px"></td>
+          <td><input type="number" min="0" value="${cardQtys[c.id] || 0}" onchange="updateQtyGlobal('${c.id}', this.value)" class="qty-input" style="width:50px;font-size:11px"></td>
         </tr>`;
     }).join('');
-
     res.innerHTML = `
       <div class="search-table">
         <table>
@@ -1276,6 +1206,14 @@ function globalSearch(q) {
       </div>
       ${results.length>80?`<div style="padding:10px 0;font-size:12px;color:var(--faint)">${results.length} resultados — mostrando los primeros 80.</div>`:''}`;
   }, 350);
+}
+
+function updateQtyGlobal(id, qty) {
+  cardQtys[id] = parseInt(qty) || 0;
+  // Actualizar también en currentCards si está abierto ese set
+  const c = currentCards.find(x => x.id == id);
+  if (c) c.qty = cardQtys[id];
+  save();
 }
 
 /* ══ ELIMINAR SET ══ */
@@ -1307,8 +1245,7 @@ function handleOverlayClick(e) { if (e.target === document.getElementById('add-m
 async function loadAllApiSets() {
   if (allApiSets) return;
   try {
-    const r = await fetch('https://db.ygoprodeck.com/api/v7/cardsets.php');
-    allApiSets = await r.json();
+    allApiSets = await apiFetch(`${API_BASE}cardsets.php`);
   } catch(e) { allApiSets = []; }
 }
 
@@ -1340,7 +1277,6 @@ function searchSetsModal(q) {
   }, 400);
 }
 
-// FIX #11 — validar que code y name existan antes de hacer push
 function handleAddSet(el) {
   if (el.classList.contains('added')) return;
   const code = el.dataset.code;
@@ -1350,15 +1286,38 @@ function handleAddSet(el) {
   sets.push({ name, code });
   save();
   closeAddModal();
-  // FIX #9 — limpiar buscador al agregar
   document.getElementById('sets-search').value = '';
   renderSetsView();
   renderDashboard();
 }
 
-/* ══ FIX #5 — CARD_IMG_BASE eliminada (era variable muerta) ══ */
-
 /* ══ INIT ══ */
+// Limpiar sets del localStorage si vienen del default anterior (más de 5 sets sin cache)
+(function clearLegacySets() {
+  const stored = safeGet('ygo_sets', null);
+  if (stored && stored.length > 5) {
+    const hasAnyCache = stored.some(s => cardCache[s.code] && cardCache[s.code].length > 0);
+    if (!hasAnyCache) {
+      // Ningún set tiene cartas cacheadas — eran los defaults, limpiar
+      safeSet('ygo_sets', []);
+      sets = [];
+    }
+  }
+})();
+// Migración: si el cache tiene imágenes recortadas (_cropped), limpiarlo
+// para que la próxima apertura descargue la carta completa
+(function migrateCropCache() {
+  let dirty = false;
+  Object.keys(cardCache).forEach(code => {
+    const cards = cardCache[code];
+    if (Array.isArray(cards) && cards.length > 0 && (cards[0].img||'').includes('_cropped')) {
+      delete cardCache[code];
+      dirty = true;
+    }
+  });
+  if (dirty) save();
+})();
+
 renderDashboard();
 </script>
 </body>

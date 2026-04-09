@@ -301,16 +301,6 @@ img    { display: block; }
 .ed-qty-num { font-size: 11px; font-weight: 600; min-width: 14px; text-align: center; font-family: 'DM Mono', monospace; }
 .ed-price { font-size: 9px; color: var(--green); font-family: 'DM Mono', monospace; margin-left: auto; }
 
-/* Rarity buttons */
-.rarity-buttons { display: flex; gap: 2px; margin-bottom: 6px; justify-content: center; }
-.rarity-btn {
-  width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border2);
-  background: var(--bg); font-size: 9px; font-weight: 600; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: background .12s, color .12s;
-}
-.rarity-btn:hover { background: var(--border); }
-.rarity-btn.active { background: var(--gold); color: #fff; border-color: var(--gold); }
-
 /* ── SEARCH VIEW ── */
 .search-scroll { flex: 1; overflow-y: auto; }
 .search-hero  { padding: 32px 28px 20px; }
@@ -403,7 +393,6 @@ img    { display: block; }
   .card-tile-code { font-size: 10px; }
   .qty-num { font-size: 14px; }
   .qty-btn { width: 30px; height: 30px; font-size: 18px; }
-  .rarity-btn { width: 24px; height: 24px; font-size: 10px; }
   .qty-input { width: 70px; font-size: 14px; }
   .detail-toolbar { padding: 12px 32px; }
   .detail-header { padding: 18px 32px; }
@@ -1141,13 +1130,6 @@ function renderCards() {
             <div></div>
             ${rl?`<div class="rarity-pip pip-${rk}">${rl}</div>`:''}
           </div>
-          <div class="rarity-buttons">
-            <button class="rarity-btn${c.selectedRarity==='C'?' active':''}" onclick="setCardRarity('${c.id}', 'C')">C</button>
-            <button class="rarity-btn${c.selectedRarity==='R'?' active':''}" onclick="setCardRarity('${c.id}', 'R')">R</button>
-            <button class="rarity-btn${c.selectedRarity==='SR'?' active':''}" onclick="setCardRarity('${c.id}', 'SR')">SR</button>
-            <button class="rarity-btn${c.selectedRarity==='UR'?' active':''}" onclick="setCardRarity('${c.id}', 'UR')">UR</button>
-            <button class="rarity-btn${c.selectedRarity==='ScR'?' active':''}" onclick="setCardRarity('${c.id}', 'ScR')">ScR</button>
-          </div>
           <div class="qty-row">
             <button class="qty-btn minus" ontouchstart="" onclick="stepQty('${c.id}', -1)">−</button>
             <span class="qty-num" onclick="promptQty('${c.id}')" id="qn-${sk}">${c.qty}</span>
@@ -1156,16 +1138,6 @@ function renderCards() {
         </div>
       </div>`;
   }).join('');
-}
-
-function setCardRarity(id, r) {
-  const c = currentCards.find(x => x.id == id);
-  if (c) {
-    c.selectedRarity = c.selectedRarity === r ? null : r;
-    selectedRarities[c.id] = c.selectedRarity;
-    renderCards();
-    save();
-  }
 }
 
 function stepQty(id, delta) {
